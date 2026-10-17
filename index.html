@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offbeat — Fotografia fora do compasso</title>
+<meta name="description" content="Offbeat, por Lázaro: galeria de seleção protegida, site, álbum, CRM e Pix para fotógrafos — num estúdio só." />
+<meta name="theme-color" content="#0f0e0c" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/site.css" />
+</head>
+<body class="site">
+<div class="grain" aria-hidden="true"></div>
+
+<!-- CENA 0 — Preloader: o diafragma abre -->
+<div class="loader" id="loader" aria-hidden="true">
+  <svg class="iris" viewBox="-100 -100 200 200">
+    <g class="iris__blades"></g>
+    <circle r="98" fill="none" stroke="currentColor" stroke-opacity=".25" />
+  </svg>
+  <div class="loader__meta mono"><span>Offbeat</span><span id="loaderCount">000</span></div>
+</div>
+
+<header class="nav" id="nav">
+  <a href="#top" class="logo" aria-label="Offbeat — início"><span class="logo__word">Offbeat</span><span class="logo__dot"></span></a>
+  <nav class="nav__links" aria-label="Principal">
+    <a href="#solucoes">Soluções</a>
+    <a href="#demo">O link</a>
+    <a href="#diferencas">Diferenças</a>
+    <a href="#planos">Planos</a>
+  </nav>
+  <div class="nav__cta">
+    <a href="app.html" class="nav__login">Entrar</a>
+    <a href="app.html" class="btn btn--light btn--sm" data-magnetic=".2">Começar grátis <span class="arr">→</span></a>
+  </div>
+</header>
+
+<main id="top">
+  <!-- CENA 1 — Hero -->
+  <section class="hero">
+    <div class="hero__meta mono" data-reveal style="--d:.9s">
+      <span>FR 01</span><span>Lázaro — São Paulo</span><span>ISO 400 · f/1.8 · 1/250</span>
+    </div>
+    <h1 class="hero__title serif" data-split data-delay=".95">
+      Fotografia <br />fora do <em class="red">compasso.</em>
+    </h1>
+    <div class="hero__foot">
+      <p class="hero__sub" data-reveal style="--d:1.5s">A plataforma do fotógrafo que não segue o metrônomo. Galeria de seleção protegida, site, álbum, CRM e Pix — <strong>num estúdio só</strong>.</p>
+      <div class="hero__ctas" data-reveal style="--d:1.65s">
+        <a href="app.html" class="btn btn--red" data-magnetic>Criar meu estúdio <span class="arr">→</span></a>
+        <a href="gallery.html#g_marina" class="btn btn--ghost">Ver galeria de cliente</a>
+      </div>
+    </div>
+    <div class="hero__stack" id="heroStack" aria-hidden="true"></div>
+    <svg class="hero__badge" viewBox="0 0 120 120" aria-hidden="true">
+      <defs><path id="circ" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0" /></defs>
+      <text><textPath href="#circ">OFFBEAT • ESTÚDIO DIGITAL • DESDE 2026 •</textPath></text>
+      <circle cx="60" cy="60" r="5" fill="var(--safelight)" />
+    </svg>
+  </section>
+
+  <!-- Faixa de filme -->
+  <section class="strip" aria-label="Fotografias de exemplo">
+    <div class="strip__track" id="strip"></div>
+  </section>
+
+  <!-- CENA 2 — Manifesto: as palavras revelam conforme a rolagem -->
+  <section class="manifesto">
+    <p class="mono manifesto__kicker">Manifesto · FR 02</p>
+    <p class="manifesto__text serif" id="manifesto">
+      A foto boa nunca acontece no tempo certo. Ela vive no contratempo — o riso antes da contagem, o olhar fora da pose. A Offbeat foi feita para quem fotografa assim, e precisa de um estúdio que acompanhe: entregar, vender, cobrar e encantar sem perder a batida.
+    </p>
+    <p class="manifesto__sign mono">— Lázaro, fundador</p>
+  </section>
+
+  <!-- CENA 3 — Soluções: capítulos com palco fixo -->
+  <section class="sol" id="solucoes">
+    <header class="sol__head">
+      <p class="mono">Soluções · FR 03</p>
+      <h2 class="serif" data-split>Seis ferramentas, <em>um compasso.</em></h2>
+    </header>
+    <div class="sol__grid">
+      <ol class="sol__list" id="solList">
+        <li data-i="0" class="on">
+          <span class="mono">01 — Prova</span>
+          <h3>Seleção e venda de fotos</h3>
+          <p>Mande um link. O cliente escolhe, comenta, compra extras e finaliza — sem conseguir baixar nada que você não liberou.</p>
+        </li>
+        <li data-i="1">
+          <span class="mono">02 — Palco</span>
+          <h3>Site e landing pages</h3>
+          <p>Portfólio com temas editoriais, publicado em minutos e conectado às suas galerias.</p>
+        </li>
+        <li data-i="2">
+          <span class="mono">03 — Lâmina</span>
+          <h3>Diagramação de álbuns</h3>
+          <p>Arraste as fotos escolhidas para lâminas prontas. A seleção do cliente já chega no diagramador.</p>
+        </li>
+        <li data-i="3">
+          <span class="mono">04 — Pulso</span>
+          <h3>CRM e gestão</h3>
+          <p>Funil de vendas, agenda, propostas e contratos. Cada contato vira galeria, cobrança e álbum com um clique.</p>
+        </li>
+        <li data-i="4">
+          <span class="mono">05 — Caixa</span>
+          <h3>Pagamentos por link</h3>
+          <p>Pix copia-e-cola e QR Code válidos em qualquer banco, gerados na hora, direto na conta do fotógrafo.</p>
+        </li>
+        <li data-i="5">
+          <span class="mono">06 — Pista</span>
+          <h3>Venda de fotos de eventos</h3>
+          <p>Corrida, formatura, show: o público busca pelo número de peito e compra em pacotes.</p>
+        </li>
+      </ol>
+      <div class="sol__stage" aria-hidden="true">
+        <div class="stage" id="stage">
+          <!-- 01 Prova -->
+          <div class="scr scr--prova on">
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">offbeat.foto/g/marina</span></div>
+            <div class="mk-grid" id="mkProva"></div>
+            <div class="mk-bottom"><span class="mono">12 / 40 escolhidas</span><span class="mk-prog"><b style="width:30%"></b></span><span class="mk-btn">Finalizar</span></div>
+          </div>
+          <!-- 02 Palco -->
+          <div class="scr scr--palco">
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">lazaro.offbeat.foto</span></div>
+            <div class="mk-site">
+              <div class="mk-site__hero"><span class="serif">Lázaro</span><small class="mono">Casamentos · Ensaios · Eventos</small></div>
+              <div class="mk-site__row" id="mkPalco"></div>
+            </div>
+          </div>
+          <!-- 03 Lâmina -->
+          <div class="scr scr--lamina">
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">Álbum Júlia · 30×30 · lâmina 03</span></div>
+            <div class="mk-album" id="mkAlbum"></div>
+            <div class="mk-thumbs" id="mkThumbs"></div>
+          </div>
+          <!-- 04 Pulso -->
+          <div class="scr scr--pulso">
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">Funil · R$ 48.200 em aberto</span></div>
+            <div class="mk-kanban">
+              <div><span class="mono">Lead</span><b>Luiza · Ensaio</b><b>Enzo · Newborn</b></div>
+              <div><span class="mono">Orçamento</span><b>Beatriz · 15 anos</b><b class="mv">Rafael & Davi</b></div>
+              <div><span class="mono">Contrato</span><b>Ana Paula · Casamento</b></div>
+              <div><span class="mono">Fechado</span><b>Marina & Teo</b></div>
+            </div>
+          </div>
+          <!-- 05 Caixa -->
+          <div class="scr scr--caixa">
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">Cobrança · Sinal 30%</span></div>
+            <div class="mk-pay">
+              <div class="mk-qr" id="mkQr"></div>
+              <div><span class="mono">Valor</span><strong class="serif">R$ 3.360,00</strong><span class="mk-status mono">● aguardando Pix</span></div>
+            </div>
+          </div>
+          <!-- 06 Pista -->
+          <div class="scr scr--pista">
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">Corrida Noturna SP</span></div>
+            <div class="mk-search"><span class="mono">Nº de peito</span><b class="mk-type">127</b></div>
+            <div class="mk-grid mk-grid--3" id="mkPista"></div>
+          </div>
+        </div>
+        <div class="stage__counter mono"><span id="stageN">01</span> / 06</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CENA 4 — Demonstração interativa do link -->
+  <section class="demo" id="demo">
+    <div class="demo__copy">
+      <p class="mono">O link · FR 04</p>
+      <h2 class="serif" data-split>Clique. Escolha. <em>Tente roubar.</em></h2>
+      <p>Esta é uma prova real: as fotos são desenhadas em canvas com marca d'água que leva o nome do cliente. Clique com o botão direito, arraste, aperte Ctrl+S — a foto não sai daqui.</p>
+      <ul class="demo__facts mono">
+        <li><span>Pacote</span><b>4 fotos</b></li>
+        <li><span>Extra</span><b>R$ 25,00 / foto</b></li>
+        <li><span>Escolhidas</span><b id="demoCount">0</b></li>
+        <li><span>Total extra</span><b id="demoTotal">R$ 0,00</b></li>
+      </ul>
+      <a href="gallery.html#g_marina" class="btn btn--light">Abrir a galeria completa <span class="arr">→</span></a>
+    </div>
+    <div class="demo__board">
+      <div class="demo__grid" id="demoGrid"></div>
+      <div class="demo__bar"><span class="demo__prog"><b id="demoProg"></b></span><span class="mono" id="demoLabel">Escolha até 4 fotos do pacote</span></div>
+    </div>
+  </section>
+
+  <!-- CENA 5 — Diferenças -->
+  <section class="diff" id="diferencas">
+    <header>
+      <p class="mono">Diferenças · FR 05</p>
+      <h2 class="serif" data-split>Ouvimos o que faltava. <em>E fizemos.</em></h2>
+      <p class="diff__lede">Cada item abaixo nasceu de reclamações públicas de fotógrafos sobre as plataformas que eles já usavam.</p>
+    </header>
+    <div class="diff__grid" data-stagger>
+      <article data-reveal data-focus="01"><span class="mono">Antes</span><p class="diff__pain">“O cliente não acha o botão de finalizar a seleção.”</p><span class="mono red">Offbeat</span><p>Barra fixa com progresso, contagem do pacote e o botão sempre à vista. Lembrete automático se o cliente sair sem finalizar.</p></article>
+      <article data-reveal data-focus="02"><span class="mono">Antes</span><p class="diff__pain">“O cliente não tem um lugar para ver fotos, contrato e pedidos.”</p><span class="mono red">Offbeat</span><p>Portal do cliente: fotos, contrato com assinatura na tela e pagamento Pix no mesmo link.</p></article>
+      <article data-reveal data-focus="03"><span class="mono">Antes</span><p class="diff__pain">“A galeria parou de conversar com o CRM.”</p><span class="mono red">Offbeat</span><p>Do contato no funil para galeria, cobrança e álbum com um clique. Tudo no mesmo histórico.</p></article>
+      <article data-reveal data-focus="04"><span class="mono">Antes</span><p class="diff__pain">“Não consigo mandar orçamento como proposta em PDF.”</p><span class="mono red">Offbeat</span><p>Proposta e contrato gerados a partir do contato, com layout editorial pronto para PDF.</p></article>
+      <article data-reveal data-focus="05"><span class="mono">Antes</span><p class="diff__pain">“Marca d'água genérica só assusta, não identifica.”</p><span class="mono red">Offbeat</span><p>Marca d'água forense com o e-mail do cliente: se vazar, você sabe de onde veio.</p></article>
+      <article data-reveal data-focus="06"><span class="mono">Antes</span><p class="diff__pain">“Exportar a seleção para editar dá trabalho.”</p><span class="mono red">Offbeat</span><p>Um clique copia o filtro pronto para o Lightroom e a lista de arquivos em CSV.</p></article>
+    </div>
+  </section>
+
+  <!-- Números -->
+  <section class="nums" data-stagger>
+    <div data-reveal><b class="serif" data-count="1">0</b><span class="mono">link para fotos, contrato e Pix</span></div>
+    <div data-reveal><b class="serif" data-count="6">0</b><span class="mono">ferramentas integradas</span></div>
+    <div data-reveal><b class="serif" data-count="0" data-suf="%">0</b><span class="mono">taxa sobre o seu Pix</span></div>
+    <div data-reveal><b class="serif">ao vivo</b><span class="mono">painel atualiza enquanto o cliente escolhe</span></div>
+  </section>
+
+  <!-- CENA 6 — Planos -->
+  <section class="plans" id="planos">
+    <header>
+      <p class="mono">Planos · FR 06</p>
+      <h2 class="serif" data-split>Pague pelo <em>seu</em> ritmo.</h2>
+      <div class="toggle" role="group" aria-label="Período de cobrança">
+        <button class="on" data-period="m">Mensal</button>
+        <button data-period="y">Anual <span class="red">−20%</span></button>
+        <i class="toggle__pill"></i>
+      </div>
+    </header>
+    <div class="plans__grid" data-stagger>
+      <article class="plan" data-reveal>
+        <h3 class="serif">Solo</h3><p class="mono">Para começar</p>
+        <div class="plan__price"><span>R$</span><b data-m="0" data-y="0">0</b><small>/mês</small></div>
+        <ul><li>1 galeria ativa</li><li>Seleção com proteção e marca d'água</li><li>Cobranças Pix ilimitadas</li><li>CRM até 20 contatos</li></ul>
+        <a href="app.html" class="btn btn--ghost">Começar</a>
+      </article>
+      <article class="plan plan--hot" data-reveal>
+        <span class="plan__tag mono">Mais escolhido</span>
+        <h3 class="serif">Estúdio</h3><p class="mono">Para quem vive disso</p>
+        <div class="plan__price"><span>R$</span><b data-m="49" data-y="39">49</b><small>/mês</small></div>
+        <ul><li>Galerias ilimitadas · 200 GB</li><li>Site com domínio próprio</li><li>CRM, contratos e propostas</li><li>Diagramador de álbuns</li></ul>
+        <a href="app.html" class="btn btn--red" data-magnetic=".15">Testar 14 dias <span class="arr">→</span></a>
+      </article>
+      <article class="plan" data-reveal>
+        <h3 class="serif">Pista</h3><p class="mono">Para eventos</p>
+        <div class="plan__price"><span>R$</span><b data-m="99" data-y="79">99</b><small>/mês</small></div>
+        <ul><li>Tudo do Estúdio · 1 TB</li><li>Venda de fotos de eventos</li><li>Busca por número de peito</li><li>Equipe com 3 usuários</li></ul>
+        <a href="app.html" class="btn btn--ghost">Falar com Lázaro</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- CENA 7 — Resolução -->
+  <section class="outro">
+    <p class="mono">FR 07 — fim do rolo</p>
+    <h2 class="serif" data-split>Entre no <em class="red">contratempo.</em></h2>
+    <a href="app.html" class="outro__btn" data-magnetic=".35" data-focus="REC ●"><span>Abrir meu estúdio</span></a>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="logo"><span class="logo__word">Offbeat</span><span class="logo__dot"></span></div>
+  <p class="mono">Um estúdio digital de Lázaro · São Paulo · 2026</p>
+  <nav class="mono"><a href="app.html">Painel</a><a href="gallery.html#g_marina">Galeria demo</a><a href="site.html">Portfólio</a><a href="https://wa.me/5511999999999" rel="noopener">WhatsApp</a></nav>
+</footer>
+
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/pix.js"></script>
+<script src="assets/js/motion.js"></script>
+<script src="assets/js/protect.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pagamento — Offbeat</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<style>
+  body { background: var(--ink); color: var(--paper); min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; }
+  .pay { width: min(460px, 100%); background: var(--paper); color: var(--ink); border-radius: 22px; padding: 32px; box-shadow: 0 40px 100px rgba(0,0,0,.5); animation: in .8s var(--e-out); }
+  @keyframes in { from { opacity: 0; transform: translateY(24px); } }
+  .pay .mono { color: var(--muted); }
+  .pay h1 { font: 400 3.4rem/1 var(--f-display); margin: 6px 0; letter-spacing: -.02em; }
+  .pay .qr { width: 220px; margin: 22px auto; padding: 10px; background: #fff; border-radius: 12px; }
+  .pay textarea { width: 100%; height: 90px; resize: none; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: 11px/1.4 var(--f-mono); word-break: break-all; }
+  .pay .acts { display: grid; gap: 8px; margin-top: 14px; }
+  .pay .btn { justify-content: center; }
+  .brand { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  .brand .serif { font-size: 1.6rem; }
+  .brand .serif i { color: var(--safelight); font-style: normal; }
+  .steps { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: .88rem; color: #5a554d; }
+  .steps li::before { content: counter(s) " · "; counter-increment: s; font-family: var(--f-mono); color: var(--safelight); }
+  .steps { counter-reset: s; }
+  .ok { text-align: center; }
+  .ok .chip { display: inline-block; padding: 4px 12px; border-radius: 99px; background: rgba(63,143,90,.14); color: var(--ok); font: 500 .75rem var(--f-mono); text-transform: uppercase; }
+</style>
+</head>
+<body>
+<main class="pay" id="pay"></main>
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/pix.js"></script>
+<script>
+(function () {
+  const O = Offbeat, box = document.getElementById("pay"), id = location.hash.slice(1);
+  function render() {
+    const s = O.get(), st = s.studio, p = s.payments.find((x) => x.id === id);
+    if (!p) { box.innerHTML = `<p class="mono">${O.esc(st.brand)}</p><h1>Cobrança não encontrada.</h1><p>O link pode ter expirado. Fale com ${O.esc(st.name)}.</p>`; return; }
+    const head = `<div class="brand"><span class="serif">${O.esc(st.brand)}<i>.</i></span><span class="mono">${O.esc(st.name)}</span></div>`;
+    if (p.status === "pago") { box.innerHTML = head + `<div class="ok"><span class="chip">pago</span><h1>${O.money(p.amount)}</h1><p>${O.esc(p.desc)}</p><p class="mono" style="text-transform:none">Obrigado! Pagamento confirmado.</p></div>`; return; }
+    const code = Pix.payload({ key: st.pixKey, name: st.pixName, city: st.city, amount: p.amount, txid: p.id.replace(/[^A-Za-z0-9]/g, "").slice(0, 25) });
+    box.innerHTML = head + `<p class="mono">${O.esc(p.desc)}</p><h1>${O.money(p.amount)}</h1>
+      <div class="qr">${Pix.qrSVG(code, { fg: "#0f0e0c" })}</div>
+      <textarea readonly aria-label="Pix copia e cola">${code}</textarea>
+      <div class="acts"><button class="btn btn--red" id="cp">Copiar código Pix</button>
+      <button class="btn btn--ghost" id="done" ${p.status === "informado" ? "disabled" : ""}>${p.status === "informado" ? "Aguardando confirmação…" : "Já paguei"}</button></div>
+      <ol class="steps"><li>Abra o app do seu banco e escolha Pix</li><li>Leia o QR Code ou cole o código</li><li>Confira o recebedor: ${O.esc(st.pixName)}</li></ol>`;
+    document.getElementById("cp").onclick = () => O.copy(code, "Código copiado — cole no app do banco.");
+    document.getElementById("done").onclick = () => O.update((s2) => { const x = s2.payments.find((y) => y.id === id); if (x.status === "pendente") x.status = "informado"; O.log(`Cliente informou pagamento: ${x.desc} · ${O.money(x.amount)}`, "pay"); });
+  }
+  render(); O.onChange(render);
+})();
+</script>
+</body>
+</html>

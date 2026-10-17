@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Galeria — Offbeat</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#121110" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/gallery.css" />
+</head>
+<body class="gal">
+
+<!-- Capa / porta de entrada -->
+<section class="gate" id="gate">
+  <canvas class="gate__bg prot" id="gateBg" aria-hidden="true"></canvas>
+  <div class="gate__inner">
+    <p class="mono" id="gateStudio">Offbeat · Lázaro</p>
+    <h1 class="serif" id="gateTitle">Galeria</h1>
+    <p class="gate__sub" id="gateSub"></p>
+    <form class="gate__form" id="gateForm">
+      <label class="gate__pw" id="gatePw" hidden>
+        <span class="mono">Senha da galeria</span>
+        <input type="password" inputmode="numeric" autocomplete="off" id="gatePwInput" />
+      </label>
+      <button class="btn btn--light" type="submit">Abrir galeria <span class="arr">→</span></button>
+      <p class="gate__err mono" id="gateErr" role="alert"></p>
+    </form>
+    <p class="gate__exp mono" id="gateExp"></p>
+  </div>
+</section>
+
+<div class="app-shell" id="shell" hidden>
+  <header class="top">
+    <a class="top__brand" href="site.html"><span class="serif" id="brandName">Offbeat</span><span class="dot"></span></a>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" class="on" data-tab="fotos" aria-selected="true">Fotos</button>
+      <button role="tab" data-tab="contrato" hidden>Contrato</button>
+      <button role="tab" data-tab="pagamento" hidden>Pagamento</button>
+    </nav>
+    <div class="top__right">
+      <button class="cart-btn" id="cartBtn" hidden aria-label="Abrir carrinho"><span>Carrinho</span><b id="cartCount">0</b></button>
+      <a class="top__help mono" id="helpWa" target="_blank" rel="noopener">Falar com o fotógrafo</a>
+    </div>
+  </header>
+
+  <!-- ABA FOTOS -->
+  <main class="pane on" data-pane="fotos">
+    <section class="intro">
+      <div>
+        <p class="mono" id="introKicker"></p>
+        <h1 class="serif" id="introTitle"></h1>
+      </div>
+      <p class="intro__how" id="introHow"></p>
+    </section>
+
+    <div class="toolbar" id="toolbar">
+      <div class="seg" role="group" aria-label="Filtro">
+        <button class="on" data-filter="all">Todas <i id="fAll"></i></button>
+        <button data-filter="sel" id="fSelBtn">Escolhidas <i id="fSel"></i></button>
+        <button data-filter="com">Comentadas <i id="fCom"></i></button>
+      </div>
+      <label class="search" id="searchBox" hidden>
+        <span class="mono">Nº de peito</span>
+        <input type="search" inputmode="numeric" id="searchInput" placeholder="ex: 127" />
+      </label>
+      <div class="toolbar__right">
+        <button class="mono tool" id="compareBtn" title="Compare duas fotos lado a lado">Comparar</button>
+        <button class="mono tool" id="sizeBtn" title="Tamanho da grade">Grade: M</button>
+      </div>
+    </div>
+
+    <div class="masonry" id="grid" aria-live="polite"></div>
+    <p class="empty" id="empty" hidden>Nenhuma foto aqui ainda.</p>
+  </main>
+
+  <!-- ABA CONTRATO -->
+  <main class="pane" data-pane="contrato">
+    <article class="doc" id="contractDoc"></article>
+  </main>
+
+  <!-- ABA PAGAMENTO -->
+  <main class="pane" data-pane="pagamento">
+    <section class="payments" id="payments"></section>
+  </main>
+
+  <!-- barra fixa da seleção: o botão de finalizar NUNCA some -->
+  <footer class="dock" id="dock" hidden>
+    <div class="dock__ring" aria-hidden="true">
+      <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" /><circle cx="22" cy="22" r="19" id="ring" /></svg>
+      <b id="ringN">0</b>
+    </div>
+    <div class="dock__txt">
+      <strong id="dockMain">0 de 0 fotos do pacote</strong>
+      <span class="mono" id="dockSub">Toque no ♥ para escolher</span>
+    </div>
+    <button class="btn btn--red" id="finishBtn">Finalizar seleção <span class="arr">→</span></button>
+  </footer>
+</div>
+
+<!-- Lightbox -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Foto ampliada" hidden>
+  <div class="lb__stage" id="lbStage"><canvas class="prot" id="lbCanvas"></canvas><canvas class="prot" id="lbCanvas2" hidden></canvas></div>
+  <button class="lb__x" id="lbClose" aria-label="Fechar">×</button>
+  <button class="lb__nav lb__prev" id="lbPrev" aria-label="Anterior">←</button>
+  <button class="lb__nav lb__next" id="lbNext" aria-label="Próxima">→</button>
+  <aside class="lb__side">
+    <p class="mono" id="lbName"></p>
+    <div class="lb__actions">
+      <button class="btn btn--light" id="lbHeart">♥ Escolher</button>
+      <button class="btn btn--ghost" id="lbDownload" hidden>Baixar</button>
+    </div>
+    <label class="lb__comment">
+      <span class="mono">Comentário para o fotógrafo</span>
+      <textarea id="lbComment" rows="3" placeholder="Ex: pode clarear um pouco?"></textarea>
+    </label>
+    <p class="mono lb__keys">← → navegar · F escolher · Esc fechar</p>
+  </aside>
+</div>
+
+<!-- Carrinho (modo venda) -->
+<aside class="drawer" id="drawer" aria-label="Carrinho" hidden>
+  <header><h2 class="serif">Carrinho</h2><button class="lb__x" id="drawerClose" aria-label="Fechar">×</button></header>
+  <div class="drawer__items" id="cartItems"></div>
+  <div class="drawer__sum" id="cartSum"></div>
+  <label class="drawer__email"><span class="mono">Seu e-mail (para receber as fotos)</span><input type="email" id="buyerEmail" required placeholder="voce@email.com" /></label>
+  <button class="btn btn--red" id="checkoutBtn">Pagar com Pix <span class="arr">→</span></button>
+</aside>
+
+<!-- Modal genérico -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" hidden>
+  <div class="modal__card" id="modalCard"></div>
+</div>
+
+<script src="assets/vendor/qrcode.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/pix.js"></script>
+<script src="assets/js/motion.js"></script>
+<script src="assets/js/protect.js"></script>
+<script src="assets/js/gallery.js"></script>
+</body>
+</html>
