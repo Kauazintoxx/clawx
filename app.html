@@ -13,6 +13,21 @@
 <link rel="stylesheet" href="assets/css/app.css" />
 </head>
 <body>
+<!-- Entrada do estúdio (senha do dono) -->
+<section class="lock" id="lock" hidden>
+  <svg class="lock__iris" viewBox="-100 -100 200 200" aria-hidden="true"><g id="lockBlades"></g><circle r="98" fill="none" stroke="currentColor" stroke-opacity=".25" /></svg>
+  <form class="lock__box" id="lockForm" autocomplete="off">
+    <p class="mono">Estúdio Offbeat</p>
+    <h1 class="serif" id="lockTitle">Olá, Lázaro.</h1>
+    <p class="lock__sub" id="lockSub">Digite sua senha para entrar no estúdio.</p>
+    <label class="lock__field"><span class="mono">Senha</span><input type="password" id="lockPw" required minlength="4" autocomplete="current-password" /></label>
+    <label class="lock__field" id="lockConfirmWrap" hidden><span class="mono">Repita a senha</span><input type="password" id="lockPw2" minlength="4" autocomplete="new-password" /></label>
+    <p class="lock__err mono" id="lockErr" role="alert"></p>
+    <button class="btn btn--red" type="submit" id="lockBtn">Entrar <span class="arr">→</span></button>
+    <a class="lock__back mono" href="index.html">← Voltar ao início</a>
+  </form>
+</section>
+
 <div class="app" id="app">
   <header class="mtop">
     <button id="menuBtn" aria-label="Abrir menu">☰</button>
@@ -36,7 +51,7 @@
     <div class="side__foot">
       <span class="live">AO VIVO</span>
       <button class="side__kbd" id="cmdBtn"><span>Buscar ou criar…</span><kbd>Ctrl K</kbd></button>
-      <div class="side__me"><span class="av">L</span><span><strong id="meName">Lázaro</strong><br /><small class="mono" style="color:rgba(239,234,224,.5)">Plano Estúdio</small></span><button id="themeBtn" aria-label="Alternar tema" title="Tema claro/escuro">◐</button></div>
+      <div class="side__me"><span class="av">L</span><span><strong id="meName">Lázaro</strong><br /><small class="mono" style="color:rgba(239,234,224,.5)">Fotógrafo</small></span><button id="themeBtn" aria-label="Alternar tema" title="Tema claro/escuro">◐</button><button id="logoutBtn" aria-label="Sair" title="Sair do estúdio">⏻</button></div>
     </div>
   </aside>
 

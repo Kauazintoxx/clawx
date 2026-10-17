@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Offbeat — Fotografia fora do compasso</title>
-<meta name="description" content="Offbeat, por Lázaro: galeria de seleção protegida, site, álbum, CRM e Pix para fotógrafos — num estúdio só." />
+<title>Estúdio Offbeat — Lázaro</title>
+<meta name="description" content="O sistema próprio do estúdio Offbeat, de Lázaro: galerias protegidas, clientes, contratos, Pix, álbuns e site num lugar só." />
+<meta name="robots" content="noindex" />
 <meta name="theme-color" content="#0f0e0c" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,14 +28,12 @@
 <header class="nav" id="nav">
   <a href="#top" class="logo" aria-label="Offbeat — início"><span class="logo__word">Offbeat</span><span class="logo__dot"></span></a>
   <nav class="nav__links" aria-label="Principal">
-    <a href="#solucoes">Soluções</a>
-    <a href="#demo">O link</a>
-    <a href="#diferencas">Diferenças</a>
-    <a href="#planos">Planos</a>
+    <a href="#modulos">Módulos</a>
+    <a href="#fluxo">Como funciona</a>
+    <a href="#demo">O link do cliente</a>
   </nav>
   <div class="nav__cta">
-    <a href="app.html" class="nav__login">Entrar</a>
-    <a href="app.html" class="btn btn--light btn--sm" data-magnetic=".2">Começar grátis <span class="arr">→</span></a>
+    <a href="app.html" class="btn btn--light btn--sm" data-magnetic=".2">Entrar no estúdio <span class="arr">→</span></a>
   </div>
 </header>
 
@@ -48,16 +47,16 @@
       Fotografia <br />fora do <em class="red">compasso.</em>
     </h1>
     <div class="hero__foot">
-      <p class="hero__sub" data-reveal style="--d:1.5s">A plataforma do fotógrafo que não segue o metrônomo. Galeria de seleção protegida, site, álbum, CRM e Pix — <strong>num estúdio só</strong>.</p>
+      <p class="hero__sub" data-reveal style="--d:1.5s">Este é o sistema próprio do estúdio. Galerias protegidas, clientes, contratos, Pix, álbuns e site — <strong>tudo do Lázaro, num lugar só</strong>.</p>
       <div class="hero__ctas" data-reveal style="--d:1.65s">
-        <a href="app.html" class="btn btn--red" data-magnetic>Criar meu estúdio <span class="arr">→</span></a>
-        <a href="gallery.html#g_marina" class="btn btn--ghost">Ver galeria de cliente</a>
+        <a href="app.html" class="btn btn--red" data-magnetic>Entrar no estúdio <span class="arr">→</span></a>
+        <a href="#modulos" class="btn btn--ghost">Conhecer o sistema</a>
       </div>
     </div>
     <div class="hero__stack" id="heroStack" aria-hidden="true"></div>
     <svg class="hero__badge" viewBox="0 0 120 120" aria-hidden="true">
       <defs><path id="circ" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0" /></defs>
-      <text><textPath href="#circ">OFFBEAT • ESTÚDIO DIGITAL • DESDE 2026 •</textPath></text>
+      <text><textPath href="#circ">OFFBEAT • ESTÚDIO DO LÁZARO • SÃO PAULO •</textPath></text>
       <circle cx="60" cy="60" r="5" fill="var(--safelight)" />
     </svg>
   </section>
@@ -69,63 +68,69 @@
 
   <!-- CENA 2 — Manifesto: as palavras revelam conforme a rolagem -->
   <section class="manifesto">
-    <p class="mono manifesto__kicker">Manifesto · FR 02</p>
+    <p class="mono manifesto__kicker">Por que um sistema próprio · FR 02</p>
     <p class="manifesto__text serif" id="manifesto">
-      A foto boa nunca acontece no tempo certo. Ela vive no contratempo — o riso antes da contagem, o olhar fora da pose. A Offbeat foi feita para quem fotografa assim, e precisa de um estúdio que acompanhe: entregar, vender, cobrar e encantar sem perder a batida.
+      A foto boa nunca acontece no tempo certo. Ela vive no contratempo. O estúdio também não cabia em plataformas alugadas, cheias de limites, telas genéricas e a marca de outra empresa. Aqui tudo é do estúdio: os clientes, as fotos, os contratos, o jeito de entregar. Um sistema feito sob medida para fotografar sem perder a batida.
     </p>
-    <p class="manifesto__sign mono">— Lázaro, fundador</p>
+    <p class="manifesto__sign mono">— Lázaro, Offbeat</p>
   </section>
 
   <!-- CENA 3 — Soluções: capítulos com palco fixo -->
-  <section class="sol" id="solucoes">
+  <section class="sol" id="modulos">
     <header class="sol__head">
-      <p class="mono">Soluções · FR 03</p>
-      <h2 class="serif" data-split>Seis ferramentas, <em>um compasso.</em></h2>
+      <p class="mono">O que tem dentro · FR 03</p>
+      <h2 class="serif" data-split>Seis módulos, <em>um compasso.</em></h2>
     </header>
     <div class="sol__grid">
       <ol class="sol__list" id="solList">
         <li data-i="0" class="on">
           <span class="mono">01 — Prova</span>
           <h3>Seleção e venda de fotos</h3>
-          <p>Mande um link. O cliente escolhe, comenta, compra extras e finaliza — sem conseguir baixar nada que você não liberou.</p>
+          <p>Mande um link. O cliente escolhe, comenta, paga extras e finaliza — sem conseguir baixar nada que não foi liberado.</p>
+          <a class="sol__go mono" href="app.html#/galerias">Abrir galerias →</a>
         </li>
         <li data-i="1">
           <span class="mono">02 — Palco</span>
           <h3>Site e landing pages</h3>
-          <p>Portfólio com temas editoriais, publicado em minutos e conectado às suas galerias.</p>
+          <p>O portfólio público do estúdio, com temas editoriais e as galerias escolhidas. O formulário de orçamento cai direto nos clientes.</p>
+          <a class="sol__go mono" href="app.html#/site">Editar o site →</a>
         </li>
         <li data-i="2">
           <span class="mono">03 — Lâmina</span>
           <h3>Diagramação de álbuns</h3>
           <p>Arraste as fotos escolhidas para lâminas prontas. A seleção do cliente já chega no diagramador.</p>
+          <a class="sol__go mono" href="app.html#/albuns">Abrir álbuns →</a>
         </li>
         <li data-i="3">
           <span class="mono">04 — Pulso</span>
           <h3>CRM e gestão</h3>
-          <p>Funil de vendas, agenda, propostas e contratos. Cada contato vira galeria, cobrança e álbum com um clique.</p>
+          <p>Funil de clientes, agenda, propostas e contratos. Cada cliente vira galeria, cobrança e álbum com um clique.</p>
+          <a class="sol__go mono" href="app.html#/crm">Abrir clientes →</a>
         </li>
         <li data-i="4">
           <span class="mono">05 — Caixa</span>
           <h3>Pagamentos por link</h3>
-          <p>Pix copia-e-cola e QR Code válidos em qualquer banco, gerados na hora, direto na conta do fotógrafo.</p>
+          <p>Pix copia-e-cola e QR Code gerados na hora, direto na conta do estúdio, para sinal, saldo e fotos extras.</p>
+          <a class="sol__go mono" href="app.html#/financeiro">Abrir financeiro →</a>
         </li>
         <li data-i="5">
           <span class="mono">06 — Pista</span>
           <h3>Venda de fotos de eventos</h3>
-          <p>Corrida, formatura, show: o público busca pelo número de peito e compra em pacotes.</p>
+          <p>Corrida, formatura, show: o público busca pelo número de peito e compra as fotos em pacotes.</p>
+          <a class="sol__go mono" href="gallery.html#g_corrida">Ver um evento →</a>
         </li>
       </ol>
       <div class="sol__stage" aria-hidden="true">
         <div class="stage" id="stage">
           <!-- 01 Prova -->
           <div class="scr scr--prova on">
-            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">offbeat.foto/g/marina</span></div>
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">galeria · marina & teo</span></div>
             <div class="mk-grid" id="mkProva"></div>
             <div class="mk-bottom"><span class="mono">12 / 40 escolhidas</span><span class="mk-prog"><b style="width:30%"></b></span><span class="mk-btn">Finalizar</span></div>
           </div>
           <!-- 02 Palco -->
           <div class="scr scr--palco">
-            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">lazaro.offbeat.foto</span></div>
+            <div class="scr__bar"><i></i><i></i><i></i><span class="mono">site do estúdio</span></div>
             <div class="mk-site">
               <div class="mk-site__hero"><span class="serif">Lázaro</span><small class="mono">Casamentos · Ensaios · Eventos</small></div>
               <div class="mk-site__row" id="mkPalco"></div>
@@ -171,8 +176,8 @@
   <section class="demo" id="demo">
     <div class="demo__copy">
       <p class="mono">O link · FR 04</p>
-      <h2 class="serif" data-split>Clique. Escolha. <em>Tente roubar.</em></h2>
-      <p>Esta é uma prova real: as fotos são desenhadas em canvas com marca d'água que leva o nome do cliente. Clique com o botão direito, arraste, aperte Ctrl+S — a foto não sai daqui.</p>
+      <h2 class="serif" data-split>Clique. Escolha. <em>Tente copiar.</em></h2>
+      <p>É assim que o cliente vê as fotos: desenhadas com marca d'água que leva o nome dele. Clique com o botão direito, arraste, aperte Ctrl+S — a foto não sai daqui.</p>
       <ul class="demo__facts mono">
         <li><span>Pacote</span><b>4 fotos</b></li>
         <li><span>Extra</span><b>R$ 25,00 / foto</b></li>
@@ -187,77 +192,43 @@
     </div>
   </section>
 
-  <!-- CENA 5 — Diferenças -->
-  <section class="diff" id="diferencas">
+  <!-- CENA 5 — Como funciona: o caminho de um trabalho -->
+  <section class="diff" id="fluxo">
     <header>
-      <p class="mono">Diferenças · FR 05</p>
-      <h2 class="serif" data-split>Ouvimos o que faltava. <em>E fizemos.</em></h2>
-      <p class="diff__lede">Cada item abaixo nasceu de reclamações públicas de fotógrafos sobre as plataformas que eles já usavam.</p>
+      <p class="mono">Como funciona · FR 05</p>
+      <h2 class="serif" data-split>Do primeiro “oi” <em>ao álbum na mão.</em></h2>
+      <p class="diff__lede">O caminho de um trabalho dentro do sistema. Cada etapa conversa com a próxima, sem copiar nada de um lugar para outro.</p>
     </header>
     <div class="diff__grid" data-stagger>
-      <article data-reveal data-focus="01"><span class="mono">Antes</span><p class="diff__pain">“O cliente não acha o botão de finalizar a seleção.”</p><span class="mono red">Offbeat</span><p>Barra fixa com progresso, contagem do pacote e o botão sempre à vista. Lembrete automático se o cliente sair sem finalizar.</p></article>
-      <article data-reveal data-focus="02"><span class="mono">Antes</span><p class="diff__pain">“O cliente não tem um lugar para ver fotos, contrato e pedidos.”</p><span class="mono red">Offbeat</span><p>Portal do cliente: fotos, contrato com assinatura na tela e pagamento Pix no mesmo link.</p></article>
-      <article data-reveal data-focus="03"><span class="mono">Antes</span><p class="diff__pain">“A galeria parou de conversar com o CRM.”</p><span class="mono red">Offbeat</span><p>Do contato no funil para galeria, cobrança e álbum com um clique. Tudo no mesmo histórico.</p></article>
-      <article data-reveal data-focus="04"><span class="mono">Antes</span><p class="diff__pain">“Não consigo mandar orçamento como proposta em PDF.”</p><span class="mono red">Offbeat</span><p>Proposta e contrato gerados a partir do contato, com layout editorial pronto para PDF.</p></article>
-      <article data-reveal data-focus="05"><span class="mono">Antes</span><p class="diff__pain">“Marca d'água genérica só assusta, não identifica.”</p><span class="mono red">Offbeat</span><p>Marca d'água forense com o e-mail do cliente: se vazar, você sabe de onde veio.</p></article>
-      <article data-reveal data-focus="06"><span class="mono">Antes</span><p class="diff__pain">“Exportar a seleção para editar dá trabalho.”</p><span class="mono red">Offbeat</span><p>Um clique copia o filtro pronto para o Lightroom e a lista de arquivos em CSV.</p></article>
+      <article data-reveal data-focus="01"><span class="mono red">01 · Contato</span><p class="diff__step">O cliente chega</p><p>Pelo formulário do site, pelo WhatsApp ou cadastrado à mão. Entra no funil com tipo de trabalho, data e valor.</p></article>
+      <article data-reveal data-focus="02"><span class="mono red">02 · Proposta</span><p class="diff__step">Proposta e contrato</p><p>Proposta em PDF com um clique. O contrato é assinado pelo próprio cliente, na tela, pelo link dele.</p></article>
+      <article data-reveal data-focus="03"><span class="mono red">03 · Sinal</span><p class="diff__step">Pix na hora</p><p>Cobrança com QR Code e copia-e-cola enviada pelo WhatsApp. O cliente avisa que pagou e você confirma.</p></article>
+      <article data-reveal data-focus="04"><span class="mono red">04 · Seleção</span><p class="diff__step">Galeria protegida</p><p>As fotos sobem otimizadas, o link vai para o cliente e você acompanha ao vivo cada escolha e comentário.</p></article>
+      <article data-reveal data-focus="05"><span class="mono red">05 · Edição</span><p class="diff__step">Direto para o Lightroom</p><p>A seleção vira filtro pronto para o Lightroom e CSV. Depois de editar, você libera o download só das escolhidas.</p></article>
+      <article data-reveal data-focus="06"><span class="mono red">06 · Álbum</span><p class="diff__step">Lâminas montadas</p><p>O álbum nasce diagramado com a seleção. Você ajusta, folheia e entrega — e o trabalho fica no histórico do cliente.</p></article>
     </div>
   </section>
 
   <!-- Números -->
   <section class="nums" data-stagger>
-    <div data-reveal><b class="serif" data-count="1">0</b><span class="mono">link para fotos, contrato e Pix</span></div>
-    <div data-reveal><b class="serif" data-count="6">0</b><span class="mono">ferramentas integradas</span></div>
-    <div data-reveal><b class="serif" data-count="0" data-suf="%">0</b><span class="mono">taxa sobre o seu Pix</span></div>
+    <div data-reveal><b class="serif" data-count="6">0</b><span class="mono">módulos conectados</span></div>
+    <div data-reveal><b class="serif" data-count="1">0</b><span class="mono">link por cliente: fotos, contrato e Pix</span></div>
+    <div data-reveal><b class="serif" data-count="100" data-suf="%">0</b><span class="mono">dos dados com o estúdio</span></div>
     <div data-reveal><b class="serif">ao vivo</b><span class="mono">painel atualiza enquanto o cliente escolhe</span></div>
-  </section>
-
-  <!-- CENA 6 — Planos -->
-  <section class="plans" id="planos">
-    <header>
-      <p class="mono">Planos · FR 06</p>
-      <h2 class="serif" data-split>Pague pelo <em>seu</em> ritmo.</h2>
-      <div class="toggle" role="group" aria-label="Período de cobrança">
-        <button class="on" data-period="m">Mensal</button>
-        <button data-period="y">Anual <span class="red">−20%</span></button>
-        <i class="toggle__pill"></i>
-      </div>
-    </header>
-    <div class="plans__grid" data-stagger>
-      <article class="plan" data-reveal>
-        <h3 class="serif">Solo</h3><p class="mono">Para começar</p>
-        <div class="plan__price"><span>R$</span><b data-m="0" data-y="0">0</b><small>/mês</small></div>
-        <ul><li>1 galeria ativa</li><li>Seleção com proteção e marca d'água</li><li>Cobranças Pix ilimitadas</li><li>CRM até 20 contatos</li></ul>
-        <a href="app.html" class="btn btn--ghost">Começar</a>
-      </article>
-      <article class="plan plan--hot" data-reveal>
-        <span class="plan__tag mono">Mais escolhido</span>
-        <h3 class="serif">Estúdio</h3><p class="mono">Para quem vive disso</p>
-        <div class="plan__price"><span>R$</span><b data-m="49" data-y="39">49</b><small>/mês</small></div>
-        <ul><li>Galerias ilimitadas · 200 GB</li><li>Site com domínio próprio</li><li>CRM, contratos e propostas</li><li>Diagramador de álbuns</li></ul>
-        <a href="app.html" class="btn btn--red" data-magnetic=".15">Testar 14 dias <span class="arr">→</span></a>
-      </article>
-      <article class="plan" data-reveal>
-        <h3 class="serif">Pista</h3><p class="mono">Para eventos</p>
-        <div class="plan__price"><span>R$</span><b data-m="99" data-y="79">99</b><small>/mês</small></div>
-        <ul><li>Tudo do Estúdio · 1 TB</li><li>Venda de fotos de eventos</li><li>Busca por número de peito</li><li>Equipe com 3 usuários</li></ul>
-        <a href="app.html" class="btn btn--ghost">Falar com Lázaro</a>
-      </article>
-    </div>
   </section>
 
   <!-- CENA 7 — Resolução -->
   <section class="outro">
     <p class="mono">FR 07 — fim do rolo</p>
     <h2 class="serif" data-split>Entre no <em class="red">contratempo.</em></h2>
-    <a href="app.html" class="outro__btn" data-magnetic=".35" data-focus="REC ●"><span>Abrir meu estúdio</span></a>
+    <a href="app.html" class="outro__btn" data-magnetic=".35" data-focus="REC ●"><span>Entrar no estúdio</span></a>
   </section>
 </main>
 
 <footer class="foot">
   <div class="logo"><span class="logo__word">Offbeat</span><span class="logo__dot"></span></div>
-  <p class="mono">Um estúdio digital de Lázaro · São Paulo · 2026</p>
-  <nav class="mono"><a href="app.html">Painel</a><a href="gallery.html#g_marina">Galeria demo</a><a href="site.html">Portfólio</a><a href="https://wa.me/5511999999999" rel="noopener">WhatsApp</a></nav>
+  <p class="mono">Sistema próprio do estúdio · Lázaro · São Paulo</p>
+  <nav class="mono"><a href="app.html">Painel</a><a href="gallery.html#g_marina">Galeria de exemplo</a><a href="site.html">Site público</a></nav>
 </footer>
 
 <script src="assets/vendor/qrcode.js"></script>

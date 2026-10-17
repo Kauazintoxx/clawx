@@ -84,6 +84,8 @@ html:has(body.site) { overflow-x: clip; }
 .sol__list h3 { font-family: var(--f-display); font-weight: 400; font-size: clamp(2rem, 3.6vw, 3.2rem); line-height: 1; margin: .3em 0; }
 .sol__list p { max-width: 40ch; color: rgba(239,234,224,.75); margin: 0; }
 .sol__list li.on .mono { color: var(--safelight); }
+.sol__go { display: inline-block; margin-top: 18px; text-decoration: none; color: var(--paper) !important; border-bottom: 1px solid var(--safelight); padding-bottom: 3px; width: fit-content; transition: color .3s; }
+.sol__go:hover { color: var(--safelight) !important; }
 .sol__stage { position: sticky; top: 14vh; height: 72vh; align-self: start; }
 .stage { position: relative; height: 100%; }
 .stage__counter { position: absolute; right: 0; bottom: -32px; }
@@ -170,6 +172,7 @@ html:has(body.site) { overflow-x: clip; }
 .diff__grid article:hover { background: var(--ink-2); }
 .diff__pain { font-family: var(--f-display); font-style: italic; font-size: 1.5rem; line-height: 1.15; margin: 0 0 18px; color: rgba(239,234,224,.55); text-decoration: line-through; text-decoration-color: var(--safelight); text-decoration-thickness: 1px; }
 .diff__grid article p:last-child { margin: 0; color: rgba(239,234,224,.85); }
+.diff__step { font-family: var(--f-display); font-size: 2rem; line-height: 1.05; margin: 4px 0 6px; }
 @media (max-width: 900px) { .diff__grid { grid-template-columns: 1fr; } }
 
 /* ---------- números ---------- */
@@ -177,29 +180,6 @@ html:has(body.site) { overflow-x: clip; }
 .nums b { display: block; font-size: clamp(3rem, 7vw, 6rem); line-height: 1; font-weight: 400; }
 .nums div:last-child b { font-style: italic; color: var(--safelight); }
 @media (max-width: 760px) { .nums { grid-template-columns: 1fr 1fr; } }
-
-/* ---------- planos ---------- */
-.plans header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 24px; }
-.plans header > div:first-child, .plans header > p, .plans header > h2 { flex-basis: 100%; }
-.toggle { position: relative; display: inline-flex; padding: 4px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--line-inv); }
-.toggle button { position: relative; z-index: 1; padding: 8px 18px; border-radius: 99px; font-size: .9rem; transition: color .4s; }
-.toggle button.on { color: var(--ink); }
-.toggle__pill { position: absolute; top: 4px; bottom: 4px; left: 4px; border-radius: 99px; background: var(--paper); transition: transform .55s var(--e-out), width .55s var(--e-out); }
-.plans__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 56px; }
-.plan { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 32px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line-inv); }
-.plan h3 { font-size: 2.4rem; margin: 0; line-height: 1; }
-.plan--hot { background: var(--paper); color: var(--ink); box-shadow: none; }
-.plan__tag { position: absolute; top: 18px; right: 18px; padding: 4px 10px; border-radius: 99px; background: var(--safelight); color: var(--paper) !important; }
-.plan__price { display: flex; align-items: baseline; gap: 6px; margin: 24px 0; }
-.plan__price b { font-family: var(--f-display); font-weight: 400; font-size: 4.6rem; line-height: 1; display: inline-block; min-width: 2ch; }
-.plan__price b.flip { animation: flip .5s var(--e-out); }
-@keyframes flip { 0% { transform: translateY(40%); opacity: 0; } 100% { transform: none; opacity: 1; } }
-.plan ul { list-style: none; padding: 0; margin: 0 0 28px; flex: 1; }
-.plan li { padding: 10px 0; border-bottom: 1px solid var(--line-inv); font-size: .95rem; }
-.plan--hot li { border-color: var(--line); }
-.plan li::before { content: "↳ "; color: var(--safelight); }
-.plan .btn { justify-content: center; }
-@media (max-width: 900px) { .plans__grid { grid-template-columns: 1fr; } }
 
 /* ---------- outro ---------- */
 .outro { min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }

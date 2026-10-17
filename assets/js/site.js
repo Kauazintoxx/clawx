@@ -187,23 +187,8 @@
     Protect.guard({ root: grid, global: false, onAttempt: () => Offbeat.toast("Foto protegida — download só com liberação do fotógrafo.") });
   }
 
-  /* ---------- planos ---------- */
-  function plans() {
-    const btns = $$(".toggle button"), pill = $(".toggle__pill");
-    const place = (b) => { pill.style.width = b.offsetWidth + "px"; pill.style.transform = `translateX(${b.offsetLeft - 4}px)`; };
-    place(btns[0]);
-    addEventListener("resize", () => place($(".toggle button.on")));
-    btns.forEach((b) => b.addEventListener("click", () => {
-      btns.forEach((x) => x.classList.toggle("on", x === b)); place(b);
-      $$(".plan__price b").forEach((el) => {
-        el.textContent = el.dataset[b.dataset.period];
-        el.classList.remove("flip"); void el.offsetWidth; el.classList.add("flip");
-      });
-    }));
-  }
-
   /* ---------- sequência ---------- */
-  nav(); strip(); manifesto(); solutions(); demo(); plans();
+  nav(); strip(); manifesto(); solutions(); demo();
   Motion.viewfinder(); Motion.magnetic(); Motion.counters();
   loader().then(() => { Motion.reveal(); heroStack(); });
 })();

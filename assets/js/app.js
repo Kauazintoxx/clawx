@@ -799,11 +799,15 @@
         <div class="field"><span>Chave Pix</span><input name="pixKey" value="${esc(st.pixKey)}"><small>CPF/CNPJ só números, e-mail, celular com +55 ou chave aleatória.</small></div>
         <div class="row2"><div class="field"><span>Nome do recebedor</span><input name="pixName" maxlength="25" value="${esc(st.pixName)}"></div><div class="field"><span>Cidade</span><input name="city" maxlength="15" value="${esc(st.city)}"></div></div>
         <div class="acts"><button class="btn btn--red">Salvar</button></div></form>
-        <div class="card"><h3>Dados de demonstração</h3>
+        <div class="card"><h3>Acesso ao estúdio</h3>
+          <p style="color:var(--fg-2)">A senha que abre o painel. As galerias dos clientes continuam com as senhas próprias de cada uma.</p>
+          <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px"><button class="btn btn--sm btn--ghost" id="chpw">Trocar senha de acesso</button></div>
+          <h3>Dados de demonstração</h3>
           <p style="color:var(--fg-2)">Todos os dados ficam neste navegador (localStorage + IndexedDB). Para usar com clientes em outros aparelhos, ligue o back-end descrito em <code>docs/ARQUITETURA.md</code>.</p>
           <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn--sm btn--ghost" id="exp">Exportar backup (JSON)</button><button class="btn btn--sm btn--ghost" id="rst" style="--fg:var(--safelight)">Restaurar demonstração</button></div>
         </div></div>`;
     $("#fst", v).onsubmit = (e) => { e.preventDefault(); const x = formData(e.target); O.update((s) => Object.assign(s.studio, x)); O.toast("Ajustes salvos.", "ok"); $("#meName").textContent = x.name; };
+    $("#chpw", v).onclick = () => { if (confirm("Trocar a senha? Você vai criar uma nova agora.")) { localStorage.removeItem("offbeat:pw"); sessionStorage.removeItem("offbeat:session"); location.reload(); } };
     $("#rst", v).onclick = () => { if (confirm("Apagar tudo e voltar aos dados de demonstração?")) { O.reset(); O.toast("Demonstração restaurada.", "ok"); } };
     $("#exp", v).onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(S(), null, 2)], { type: "application/json" })); a.download = "offbeat-backup.json"; a.click(); };
   }
@@ -854,5 +858,55 @@
   $("#themeBtn").onclick = toggleTheme;
   $("#meName").textContent = S().studio.name;
 
-  route();
+  /* ======================================================================
+     ENTRADA — senha do dono do estúdio
+     Guardada como hash (SHA-256) neste navegador. Com o back-end, troque
+     por login real (ver docs/ARQUITETURA.md).
+     ====================================================================== */
+  const PW_KEY = "offbeat:pw", SESSION = "offbeat:session";
+  async function hash(t) {
+    const data = new TextEncoder().encode("offbeat·" + t);
+    if (crypto.subtle) return [...new Uint8Array(await crypto.subtle.digest("SHA-256", data))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    let h = 2166136261; for (const b of data) { h ^= b; h = Math.imul(h, 16777619); } return "f" + (h >>> 0).toString(16); // contexto sem HTTPS
+  }
+  function unlock() {
+    const lock = $("#lock");
+    sessionStorage.setItem(SESSION, "1");
+    lock.classList.add("opening");
+    setTimeout(() => (lock.hidden = true, lock.classList.remove("opening")), Motion.reduce ? 0 : 1200);
+    route();
+  }
+  function gate() {
+    if (sessionStorage.getItem(SESSION) === "1") return route();
+    const lock = $("#lock"), g = $("#lockBlades"), stored = localStorage.getItem(PW_KEY);
+    if (!g.childElementCount) for (let i = 0; i < 8; i++) {
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      p.setAttribute("d", "M-6,-4 L110,-70 L118,40 L14,34 Z"); p.style.setProperty("--r", i * 45 + "deg"); p.style.setProperty("--tx", "70px"); g.appendChild(p);
+    }
+    $("#lockTitle").textContent = `Olá, ${S().studio.name}.`;
+    const first = !stored;
+    $("#lockConfirmWrap").hidden = !first;
+    $("#lockPw2").required = first;
+    $("#lockSub").textContent = first ? "Primeiro acesso: crie a senha que vai abrir o estúdio." : "Digite sua senha para entrar no estúdio.";
+    $("#lockBtn").firstChild.textContent = first ? "Criar senha e entrar " : "Entrar ";
+    lock.hidden = false;
+    setTimeout(() => $("#lockPw").focus(), 100);
+    $("#lockForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const pw = $("#lockPw").value, err = $("#lockErr");
+      if (first) {
+        if (pw.length < 4) return (err.textContent = "Use pelo menos 4 caracteres.");
+        if (pw !== $("#lockPw2").value) return (err.textContent = "As senhas não conferem.");
+        localStorage.setItem(PW_KEY, await hash(pw));
+        return unlock();
+      }
+      if ((await hash(pw)) === stored) return unlock();
+      err.textContent = "Senha incorreta.";
+      lock.classList.remove("shake"); void lock.offsetWidth; lock.classList.add("shake");
+      $("#lockPw").select();
+    };
+  }
+  $("#logoutBtn").onclick = () => { sessionStorage.removeItem(SESSION); $("#lockPw").value = ""; $("#lockPw2").value = ""; $("#lockErr").textContent = ""; gate(); };
+
+  gate();
 })();
