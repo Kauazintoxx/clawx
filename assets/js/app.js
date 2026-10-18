@@ -35,17 +35,26 @@
 
   /* ---------- roteador ---------- */
   const routes = {
-    "": overview, galerias: galleries, g: galleryDetail, crm, agenda,
+    "": overview, hoje: overview, galerias: galleries, g: galleryDetail, crm, agenda,
     albuns: albums, album: albumEditor, ajustes: settings,
   };
   let cleanup = [], viewHook = null;
+  let rendering = false;
   function route() {
+    if (rendering) return; // um campo perdendo o foco durante o redesenho não pode redesenhar de novo
+    rendering = true;
+    try { render(); } finally { rendering = false; }
+  }
+  function render() {
     const [, name = "", arg] = location.hash.replace(/^#\/?/, "#").split(/[#/]/);
     const fn = routes[name] || overview;
     cleanup.forEach((f) => f()); cleanup = []; viewHook = null;
     app.classList.remove("nav-open");
-    const navKey = { "": "overview", g: "galerias", album: "albuns", projeto: "projetos", pagina: "site", post: "site" }[name] ?? name;
-    $$("#nav a").forEach((a) => a.classList.toggle("on", a.dataset.r === navKey));
+    const navKey = { g: "galerias", album: "albuns", projeto: "projetos", pagina: "site", post: "site" }[name] ?? name;
+    const LABEL = { hoje: "Painel do dia", projetos: "Projetos", galerias: "Galerias", crm: "Clientes", propostas: "Propostas", tarefas: "Tarefas", agenda: "Agenda", financeiro: "Financeiro", albuns: "Álbuns", ar: "Realidade aumentada", site: "Meu site", ajustes: "Ajustes", oportunidades: "Oportunidades", fila: "Fila de edição", lucro: "Lucro por serviço", posvenda: "Pós-venda", arquivo: "Arquivo", preparo: "Preparação do cliente" };
+    const cr = $("#crumb");
+    cr.hidden = !navKey; cr.innerHTML = navKey ? (navKey !== name || arg ? `<a href="#/${navKey}">${LABEL[navKey] || navKey}</a>` : `<b>${LABEL[navKey] || navKey}</b>`) : "";
+    document.title = `${navKey ? (LABEL[navKey] || navKey) + " · " : ""}Estúdio Offbeat`;
     main.innerHTML = '<div class="view"></div>';
     const v = main.firstChild;
     fn(v, arg);
@@ -58,12 +67,8 @@
   const go = (h) => { if (location.hash === h) route(); else location.hash = h; };
 
   function badges() {
-    const sel = S().galleries.filter((g) => g.status === "finalizada" && !g.delivered).length;
-    const pay = S().payments.filter((p) => p.status === "informado").length;
-    $("#navSel").hidden = !sel; $("#navSel").textContent = sel;
-    $("#navPay").hidden = !pay; $("#navPay").textContent = pay;
-    const late = S().tasks.filter((k) => !k.done && k.due < Date.now()).length;
-    $("#navTask").hidden = !late; $("#navTask").textContent = late;
+    const hi = window.Insights ? Insights.opportunities(S()).filter((o) => o.level === "alta").length : 0;
+    $("#alertBtn").hidden = !hi; $("#alertN").textContent = hi;
   }
 
   // mudanças vindas da galeria do cliente (outra aba) → atualiza a view sem perder o lugar
@@ -132,7 +137,7 @@
     v.innerHTML = `
       <header class="vh">
         <div><p class="mono">${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
-        <h1>${hi}, ${esc(s.studio.name)}. <em>Em ritmo.</em></h1></div>
+        <h1>Painel <em>do dia</em></h1></div>
         <div class="acts"><button class="btn btn--ghost" data-act="lead">+ Cliente</button><button class="btn btn--red" data-act="gallery">+ Nova galeria</button></div>
       </header>
       <section class="grid g4" style="margin-bottom:16px">
@@ -269,7 +274,7 @@
     const link = O.galleryLink(g);
     const sale = g.type === "venda";
     const [lbl, cls] = GSTATUS[g.delivered ? "entregue" : g.status] || ["—", ""];
-    const tabs = [["fotos", "Fotos", g.photos.length], sale ? ["pedidos", "Pedidos", (g.orders || []).length] : ["selecao", "Seleção", g.selection.length], ["config", "Configurações", ""]];
+    const tabs = [["fotos", "Fotos", g.photos.length], sale ? ["pedidos", "Pedidos", (g.orders || []).length] : ["selecao", "Seleção", g.selection.length], ["desempenho", "Desempenho", ""], ["config", "Configurações", ""]];
     v.innerHTML = `
       <a class="back" href="#/galerias">← Galerias</a>
       <header class="vh"><div><p class="mono">${esc(g.subtitle || "")} · <span class="chip ${cls}">${lbl}</span></p><h1>${esc(g.title)}</h1></div>
@@ -287,7 +292,7 @@
     const box = $("#gsub", v);
     function renderSub(t) {
       const gg = S().galleries.find((x) => x.id === gid);
-      ({ fotos: subPhotos, selecao: subSelection, pedidos: subOrders, config: subConfig }[t] || subPhotos)(box, gg);
+      ({ fotos: subPhotos, selecao: subSelection, pedidos: subOrders, config: subConfig, desempenho: (b, x) => window.OBGallerySub.desempenho(b, x, ctx) }[t] || subPhotos)(box, gg);
       hydrate(box);
     }
     renderSub(sub);
@@ -478,10 +483,11 @@
       <header class="vh"><div><p class="mono">${s.leads.length} contatos · conversão ${conv}%</p><h1>Clientes <em>no compasso</em></h1></div>
         <div class="acts"><button class="btn btn--red" id="nl">+ Novo cliente</button></div></header>
       <div class="kanban" id="kb">${STAGES.map(([k, n]) => {
-        const ls = s.leads.filter((l) => l.stage === k);
+        const ls = s.leads.filter((l) => l.stage === k).map((l) => ({ ...l, _in: Insights.leadInsight(l, s) })).sort((a, b) => b._in.score - a._in.score);
         return `<section class="col" data-stage="${k}"><header><b>${n}</b><small>${ls.length} · ${money(ls.reduce((a, l) => a + l.value, 0))}</small></header>
           ${ls.map((l) => `<article class="lead" draggable="true" data-id="${l.id}" tabindex="0"><strong>${esc(l.name)}</strong>
             <small><span>${esc(l.type)}</span><span>${money(l.value)}</span></small>
+            ${["fechado", "perdido"].includes(l.stage) ? "" : `<p class="next"><i class="lv ${l._in.level}" title="prioridade ${l._in.level}"></i><span><b>${esc(l._in.next)}</b>${esc(l._in.why)}</span></p>`}
             <div class="tags"><span class="chip">${esc(l.source)}</span>${l.contract ? `<span class="chip ${l.contract.signedAt ? "ok" : "warn"}">${l.contract.signedAt ? "assinado" : "contrato"}</span>` : ""}${s.galleries.some((g) => g.leadId === l.id) ? '<span class="chip blue">galeria</span>' : ""}</div></article>`).join("")}
         </section>`;
       }).join("")}</div>
@@ -889,7 +895,7 @@
     return [
       ["+ Nova galeria", "criar", () => newGallery()], ["+ Novo cliente", "criar", () => newLead()], ["+ Nova cobrança Pix", "criar", () => newCharge()], ["+ Novo compromisso", "criar", () => newEvent(new Date())],
       ["+ Nova tarefa", "criar", () => window.OBActions.task({})], ["+ Novo projeto", "criar", () => window.OBActions.project("")], ["+ Nova despesa", "criar", () => window.OBActions.expense()],
-      ["Visão geral", "ir", () => go("#/")], ["Projetos", "ir", () => go("#/projetos")], ["Tarefas", "ir", () => go("#/tarefas")], ["Propostas", "ir", () => go("#/propostas")], ["Realidade aumentada", "ir", () => go("#/ar")], ["Galerias", "ir", () => go("#/galerias")], ["CRM", "ir", () => go("#/crm")], ["Agenda", "ir", () => go("#/agenda")], ["Financeiro", "ir", () => go("#/financeiro")], ["Álbuns", "ir", () => go("#/albuns")], ["Meu site", "ir", () => go("#/site")], ["Ajustes", "ir", () => go("#/ajustes")],
+      ["Início", "ir", () => go("#/")], ["Painel do dia", "ir", () => go("#/hoje")], ["Oportunidades", "ir", () => go("#/oportunidades")], ["Fila de edição", "ir", () => go("#/fila")], ["Lucro por serviço", "ir", () => go("#/lucro")], ["Pós-venda", "ir", () => go("#/posvenda")], ["Arquivo de fotos", "ir", () => go("#/arquivo")], ["Preparação do cliente", "ir", () => go("#/preparo")], ["Projetos", "ir", () => go("#/projetos")], ["Tarefas", "ir", () => go("#/tarefas")], ["Propostas", "ir", () => go("#/propostas")], ["Realidade aumentada", "ir", () => go("#/ar")], ["Galerias", "ir", () => go("#/galerias")], ["CRM", "ir", () => go("#/crm")], ["Agenda", "ir", () => go("#/agenda")], ["Financeiro", "ir", () => go("#/financeiro")], ["Álbuns", "ir", () => go("#/albuns")], ["Meu site", "ir", () => go("#/site")], ["Ajustes", "ir", () => go("#/ajustes")],
       ...s.galleries.map((g) => [g.title, "galeria", () => go(`#/g/${g.id}`)]),
       ...s.leads.map((l) => [l.name, "cliente", () => { go("#/crm"); setTimeout(() => leadDrawer(l.id), 80); }]),
       ["Alternar tema claro/escuro", "ação", toggleTheme],
@@ -915,8 +921,7 @@
   });
   $("#cmdk").addEventListener("click", (e) => { if (e.target.id === "cmdk") closeCmd(); });
   addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#cmdk").hidden ? openCmd() : closeCmd(); } });
-  $("#cmdBtn").onclick = openCmd; $("#cmdBtnM").onclick = openCmd;
-  $("#menuBtn").onclick = () => app.classList.toggle("nav-open");
+  $("#cmdBtn").onclick = openCmd;
 
   /* ---------- tema ---------- */
   function toggleTheme() {
@@ -932,6 +937,7 @@
     setViewHook: (fn) => { viewHook = fn; } };
   Object.entries(window.OBViews || {}).forEach(([k, fn]) => (routes[k] = (v, a) => fn(v, a, ctx)));
   window.OBActions = window.OBActions || {};
+  Object.assign(window.OBActions, { lead: () => newLead(), gallery: () => newGallery(), openLead: (id) => { go("#/crm"); setTimeout(() => leadDrawer(id), 60); } });
   Object.entries(window.OBActionFactories || {}).forEach(([k, mk]) => (window.OBActions[k] = (...a) => mk(ctx)(...a)));
 
   /* ======================================================================

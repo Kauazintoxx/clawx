@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Preparação — Offbeat</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<style>
+  body { background: var(--paper); color: var(--ink); min-height: 100svh; }
+  .pp { max-width: 760px; margin: 0 auto; padding: clamp(28px, 7vh, 80px) var(--gutter) 120px; }
+  .pp .mono { color: var(--muted); }
+  .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 40px; }
+  .top .serif { font-size: 1.7rem; } .top .serif i { color: var(--safelight); font-style: normal; }
+  h1 { font: 400 clamp(2.6rem, 8vw, 5rem)/.92 var(--f-display); letter-spacing: -.02em; margin: .1em 0 .2em; }
+  h1 em { color: var(--safelight); }
+  .count { display: flex; gap: 10px; margin: 26px 0 40px; }
+  .count div { flex: 1; padding: 16px; border-radius: 14px; background: var(--ink); color: var(--paper); text-align: center; }
+  .count b { display: block; font: 400 2.6rem/1 var(--f-display); }
+  .count span { font: 500 .66rem var(--f-mono); text-transform: uppercase; color: rgba(239,234,224,.6); letter-spacing: .06em; }
+  section { margin-bottom: 40px; }
+  h2 { font: 400 2rem/1 var(--f-display); margin: 0 0 14px; }
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .tips li { padding: 14px 16px; border-radius: 12px; background: #fff; box-shadow: 0 1px 0 var(--line); }
+  .tips li::before { content: "↳ "; color: var(--safelight); }
+  .chk label { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 1rem; }
+  .chk input { width: 20px; height: 20px; accent-color: var(--safelight); }
+  .chk small { color: var(--muted); margin-left: auto; font: 500 .66rem var(--f-mono); text-transform: uppercase; }
+  form.q { display: grid; gap: 16px; }
+  form.q label { display: grid; gap: 6px; font-size: .95rem; }
+  form.q textarea { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff; font: inherit; resize: vertical; min-height: 64px; }
+  form.q textarea:focus { outline: none; border-color: var(--safelight); }
+  .bar { position: sticky; bottom: 16px; display: flex; align-items: center; gap: 14px; padding: 12px 12px 12px 18px; border-radius: 999px; background: var(--ink); color: var(--paper); box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .bar .prog { flex: 1; height: 5px; border-radius: 5px; background: var(--ink-3); overflow: hidden; }
+  .bar .prog i { display: block; height: 100%; background: var(--safelight); transition: width .5s var(--e-out); }
+  .saved { font: 500 .7rem var(--f-mono); color: #6fd08c; min-width: 70px; }
+</style>
+</head>
+<body>
+<main class="pp" id="pp"><p class="mono">Carregando…</p></main>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/insights.js"></script>
+<script>
+(function () {
+  const O = Offbeat, X = Insights, $ = (s) => document.querySelector(s), id = location.hash.slice(1);
+  const pj0 = O.get().projects.find((p) => p.id === id);
+  const box = $("#pp");
+  if (!pj0) { box.innerHTML = `<p class="mono">Offbeat</p><h1>Link não encontrado.</h1><p>Fale com o seu fotógrafo.</p>`; return; }
+  if (!sessionStorage.getItem("ob-prep-" + id)) { sessionStorage.setItem("ob-prep-" + id, 1); O.update((s) => { const p = s.projects.find((x) => x.id === id); p.prep.openedAt ||= Date.now(); O.log(`Cliente abriu a preparação: ${p.title}`, "view"); }); }
+  const s = O.get(), pj = s.projects.find((p) => p.id === id), l = s.leads.find((x) => x.id === pj.leadId), st = s.studio, pr = X.prepProgress(pj, s);
+  document.title = `Preparação — ${pj.title}`;
+  const left = Math.max(0, pj.date - Date.now()), d = Math.floor(left / 864e5), h = Math.floor((left % 864e5) / 36e5);
+  box.innerHTML = `<div class="top"><span class="serif">${O.esc(st.brand)}<i>.</i></span><span class="mono">${O.esc(st.name)}</span></div>
+    <p class="mono">${l ? `Para ${O.esc(l.name)}` : ""} · ${O.esc(pj.type)}</p><h1>Vamos preparar o seu <em>${O.esc(pj.type.toLowerCase())}.</em></h1>
+    <p>${new Date(pj.date).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</p>
+    <div class="count"><div><b>${d}</b><span>dias</span></div><div><b>${h}</b><span>horas</span></div><div><b>${pr.pct}%</b><span>pronto</span></div></div>
+    <section><h2>Dicas para o dia</h2><ul class="tips">${pr.tpl.tips.map((t) => `<li>${O.esc(t)}</li>`).join("")}</ul></section>
+    <section class="chk"><h2>Checklist</h2>${pr.checks.map((x) => `<label><input type="checkbox" data-c="${O.esc(x.c)}" ${x.done ? "checked" : ""} ${x.auto ? "disabled" : ""}> ${O.esc(x.c)}${x.auto ? `<small>${x.done ? "confirmado" : "pendente"}</small>` : ""}</label>`).join("")}</section>
+    <section><h2>Algumas perguntas</h2><form class="q" id="q">${pr.tpl.questions.map(([k, q]) => `<label>${O.esc(q)}<textarea name="${k}" rows="2">${O.esc(pj.prep.answers?.[k] || "")}</textarea></label>`).join("")}</form></section>
+    <div class="bar"><div class="prog"><i id="pg" style="width:${pr.pct}%"></i></div><span class="saved" id="sv"></span><button class="btn btn--red" id="done">Enviar respostas</button></div>`;
+  const refresh = () => { const p = X.prepProgress(O.get().projects.find((x) => x.id === id), O.get()); $("#pg").style.width = p.pct + "%"; document.querySelector(".count div:last-child b").textContent = p.pct + "%"; };
+  let tm;
+  $("#q").addEventListener("input", (e) => { clearTimeout(tm); tm = setTimeout(() => { O.update((s2) => { s2.projects.find((x) => x.id === id).prep.answers[e.target.name] = e.target.value; }); $("#sv").textContent = "salvo ✓"; refresh(); }, 400); });
+  document.querySelectorAll("[data-c]").forEach((cb) => cb.addEventListener("change", () => { O.update((s2) => { s2.projects.find((x) => x.id === id).prep.checks[cb.dataset.c] = cb.checked; }); refresh(); }));
+  $("#done").onclick = () => { O.update((s2) => { const p = s2.projects.find((x) => x.id === id); p.prep.completedAt = Date.now(); O.log(`${l ? l.name.split(" ")[0] : "Cliente"} respondeu a preparação de “${p.title}”`, "select"); }); O.toast(`Obrigado! ${st.name} recebeu tudo.`, "ok"); $("#done").textContent = "Respostas enviadas ✓"; };
+})();
+</script>
+</body>
+</html>

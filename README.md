@@ -24,6 +24,10 @@ python3 -m http.server 8080
 | `album.html#a_julia` | Álbum para aprovação: folhear com virada de página, ver em 3D, comentar e aprovar |
 | `ar.html#<id>` | Realidade aumentada: aponte a câmera para a foto impressa e o vídeo toca nela |
 | `pay.html#<id>` | Página de pagamento Pix |
+| `prep.html#<id do projeto>` | Preparação do cliente: contagem regressiva, dicas, checklist e questionário |
+
+### Navegação do painel
+O painel abre numa página de **cards**, agrupados pelo caminho do trabalho: **Vender** (oportunidades, clientes, propostas, agenda, site), **Produzir** (projetos, preparação, fila de edição, tarefas), **Entregar** (galerias, álbuns, realidade aumentada, arquivo) e **Crescer** (financeiro, lucro por serviço, pós-venda). No topo ficam o **Painel de oportunidades**, a separação entre dinheiro **recebido**, **vendido** e **a receber**, e a **jornada dos clientes** (interessado → reserva → ensaio → edição → entrega → pagamento → recompra).
 
 **Dica:** abra o painel e a galeria em abas lado a lado. Escolha fotos na galeria e veja o painel atualizar ao vivo.
 

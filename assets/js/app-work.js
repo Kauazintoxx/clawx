@@ -13,6 +13,8 @@
   /* ======================= PROJETOS ======================= */
   V.projetos = (v, _, c) => {
     const { O, $$, S, esc } = c, s = S(), t = Date.now();
+    const q = Insights.queue(s);
+    const risk = (pj) => q.jobs.find((j) => j.projectId === pj.id && j.late > 0);
     const rows = s.projects.map((pj) => {
       const done = pj.stages.filter((x) => x.done).length, next = pj.stages.find((x) => !x.done);
       const late = next && next.due < t;
@@ -26,7 +28,8 @@
           <div class="pj__head"><div><strong>${esc(pj.title)}</strong><small>${esc(lead?.name || "—")} · ${esc(pj.type || "")} · ${O.date(pj.date, { day: "2-digit", month: "short", year: "numeric" })}</small></div>
             <span class="chip ${!next ? "ok" : late ? "red" : next.due < t + 3 * O.DAY ? "warn" : ""}">${!next ? "concluído" : late ? "atrasado" : "em dia"}</span></div>
           <div class="pj__track">${pj.stages.map((st) => `<i class="${st.done ? "done" : st === next ? (late ? "late" : "now") : ""}" title="${esc(st.name)} · ${O.date(st.due)}"></i>`).join("")}</div>
-          <small class="mono">${next ? `Agora: ${esc(next.name)} · até ${O.date(next.due)}` : "Todas as etapas entregues"} · ${done}/${pj.stages.length}</small>
+          <small class="mono">${next ? `Agora: ${esc(next.name)} · até ${O.date(next.due)}` : "Todas as etapas entregues"} · ${done}/${pj.stages.length}${pj.prep?.completedAt ? " · preparação respondida" : ""}</small>
+          ${risk(pj) ? `<small class="pj__risk">⚠ Previsão de atraso: pela fila de edição, a entrega sai em ${O.date(risk(pj).finish)} — ${risk(pj).late} dia(s) depois do prazo.</small>` : ""}
         </a>`).join("") || '<p class="mono">Nenhum projeto ainda.</p>'}</div>`;
     $$("#np", v).forEach((b) => (b.onclick = () => A.project(c)("")));
   };
@@ -59,6 +62,7 @@
             ${pays.map((p) => `<div><span>⚡</span><div class="grow"><strong>${esc(p.desc)}</strong><small>${money(p.amount)} · ${p.status}</small></div></div>`).join("")}
           </div>
           ${g ? `<div class="field" style="margin-top:10px"><span>Galeria vinculada</span><select id="pg"><option value="">—</option>${s.galleries.map((x) => `<option value="${x.id}" ${x.id === pj.galleryId ? "selected" : ""}>${esc(x.title)}</option>`).join("")}</select></div>` : ""}</div>
+          <div class="card"><h3>Preparação do cliente <a class="mono" href="#/preparo">Abrir →</a></h3>${(() => { const pr = Insights.prepProgress(pj, s); return `<div class="prep-bar"><i style="width:${pr.pct}%"></i></div><p class="mono" style="text-transform:none;margin:8px 0 0">${pr.pct}% pronto · ${pj.prep.completedAt ? "cliente respondeu" : pj.prep.openedAt ? "cliente abriu o link" : pj.prep.sentAt ? "link enviado" : "link ainda não enviado"}</p>`; })()}</div>
           <div class="card"><h3>Tarefas <span class="mono">${tasks.filter((k) => !k.done).length} abertas</span></h3><div class="list">${tasks.map((k) => `<div><input type="checkbox" data-tk="${k.id}" ${k.done ? "checked" : ""}><div class="grow"><strong style="${k.done ? "text-decoration:line-through;opacity:.5" : ""}">${esc(k.title)}</strong><small>${O.date(k.due)}</small></div><span class="chip ${PRIO[k.priority]}">${k.priority}</span></div>`).join("") || '<p class="mono">Sem tarefas.</p>'}</div></div>
         </div>
       </section>`;

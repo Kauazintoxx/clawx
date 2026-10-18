@@ -27,7 +27,22 @@
 
   function find() { return O.get().galleries.find((x) => x.id === id); }
   function readJSON(k, d) { try { return JSON.parse(sessionStorage.getItem(k)) ?? d; } catch (e) { return d; } }
-  function saveCart() { sessionStorage.setItem(cartKey, JSON.stringify(cart)); }
+  /** Carrinho fica na sessão e também no painel (para recuperar vendas abandonadas). */
+  const cartIdKey = "ob-cartid-" + id;
+  function saveCart(email) {
+    sessionStorage.setItem(cartKey, JSON.stringify(cart));
+    if (!isSale()) return;
+    let ctId = sessionStorage.getItem(cartIdKey);
+    if (!ctId) { ctId = O.uid("ct_"); sessionStorage.setItem(cartIdKey, ctId); }
+    O.update((s) => {
+      const x = s.galleries.find((y) => y.id === id); x.carts ||= [];
+      let ct = x.carts.find((c) => c.id === ctId);
+      if (!ct) { ct = { id: ctId, items: [], email: "", updatedAt: 0 }; x.carts.unshift(ct); }
+      ct.items = [...cart]; ct.updatedAt = Date.now(); if (email !== undefined) ct.email = email;
+      if (!ct.items.length) x.carts = x.carts.filter((c) => c.id !== ctId);
+    });
+    g = find();
+  }
   function mutate(fn) { O.update((s) => { const x = s.galleries.find((y) => y.id === id); fn(x, s); }); g = find(); }
   const firstName = () => ((me()?.name) || g.client || "Cliente").split(" ")[0];
   const photoById = (pid) => g.photos.find((p) => p.id === pid);
@@ -149,6 +164,7 @@
     $("#cartBtn").addEventListener("click", openCart);
     $("#drawerClose").addEventListener("click", () => ($("#drawer").hidden = true));
     $("#checkoutBtn").addEventListener("click", checkout);
+    $("#buyerEmail").addEventListener("change", (e) => { if (cart.length && /^\S+@\S+\.\S+$/.test(e.target.value)) saveCart(e.target.value.trim()); });
     // lightbox
     $("#lbClose").addEventListener("click", closeLb);
     $("#lbPrev").addEventListener("click", () => step(-1));
@@ -511,7 +527,10 @@
     const pay = { id: O.uid("pay_"), desc: `Pedido ${g.title} — ${email}`, amount: total, status: "pendente", method: "pix", createdAt: Date.now(), leadId: null, galleryId: id, orderId: order.id };
     mutate((x, s) => { x.orders = x.orders || []; x.orders.unshift(order); s.payments.unshift(pay); O.log(`Novo pedido em “${x.title}”: ${order.items.length} fotos · ${O.money(total)}`, "pay"); });
     const mine = readJSON(ordersKey, []); mine.push(order.id); sessionStorage.setItem(ordersKey, JSON.stringify(mine));
-    cart = []; saveCart(); updateMarks();
+    const ctId = sessionStorage.getItem(cartIdKey);
+    mutate((x) => { const ct = (x.carts || []).find((c) => c.id === ctId); if (ct) { ct.recovered = true; ct.orderId = order.id; } });
+    sessionStorage.removeItem(cartIdKey);
+    cart = []; sessionStorage.setItem(cartKey, "[]"); updateMarks();
     $("#drawer").hidden = true;
     pixModal(pay, order);
   }

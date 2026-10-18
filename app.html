@@ -29,35 +29,18 @@
 </section>
 
 <div class="app" id="app">
-  <header class="mtop">
-    <button id="menuBtn" aria-label="Abrir menu">☰</button>
-    <a class="logo" href="#/">Offbeat</a>
-    <button id="cmdBtnM" aria-label="Buscar">⌘</button>
-  </header>
-
-  <aside class="side" id="side">
-    <a class="logo" href="index.html">Offbeat<i></i><small>ESTÚDIO</small></a>
-    <nav id="nav" aria-label="Painel">
-      <a href="#/" data-r="overview"><span class="mono">01</span>Visão geral</a>
-      <a href="#/projetos" data-r="projetos"><span class="mono">02</span>Projetos</a>
-      <a href="#/galerias" data-r="galerias"><span class="mono">03</span>Galerias <b id="navSel" hidden></b></a>
-      <a href="#/crm" data-r="crm"><span class="mono">04</span>Clientes · CRM</a>
-      <a href="#/propostas" data-r="propostas"><span class="mono">05</span>Propostas</a>
-      <a href="#/tarefas" data-r="tarefas"><span class="mono">06</span>Tarefas <b id="navTask" hidden></b></a>
-      <a href="#/agenda" data-r="agenda"><span class="mono">07</span>Agenda</a>
-      <a href="#/financeiro" data-r="financeiro"><span class="mono">08</span>Financeiro <b id="navPay" hidden></b></a>
-      <a href="#/albuns" data-r="albuns"><span class="mono">09</span>Álbuns</a>
-      <a href="#/ar" data-r="ar"><span class="mono">10</span>Realidade aumentada</a>
-      <a href="#/site" data-r="site"><span class="mono">11</span>Meu site</a>
-      <div class="side__sep"></div>
-      <a href="#/ajustes" data-r="ajustes"><span class="mono">⚙</span>Ajustes</a>
-    </nav>
-    <div class="side__foot">
+  <header class="topbar" id="topbar">
+    <a class="logo" href="#/" aria-label="Início">Offbeat<i></i></a>
+    <nav class="crumbs" aria-label="Você está em"><a href="#/" id="homeLink">Início</a><span id="crumb" hidden></span></nav>
+    <div class="topbar__r">
       <span class="live">AO VIVO</span>
-      <button class="side__kbd" id="cmdBtn"><span>Buscar ou criar…</span><kbd>Ctrl K</kbd></button>
-      <div class="side__me"><span class="av">L</span><span><strong id="meName">Lázaro</strong><br /><small class="mono" style="color:rgba(239,234,224,.5)">Fotógrafo</small></span><button id="themeBtn" aria-label="Alternar tema" title="Tema claro/escuro">◐</button><button id="logoutBtn" aria-label="Sair" title="Sair do estúdio">⏻</button></div>
+      <button class="tb-search" id="cmdBtn" aria-label="Buscar ou criar"><span>⌕ Buscar ou criar…</span><kbd>Ctrl K</kbd></button>
+      <a class="tb-alert" id="alertBtn" href="#/oportunidades" title="Oportunidades com prioridade alta" hidden><span>●</span><b id="alertN">0</b></a>
+      <button class="tb-ic" id="themeBtn" aria-label="Alternar tema" title="Tema claro/escuro">◐</button>
+      <span class="av" title="Lázaro"><span id="meName" hidden>Lázaro</span>L</span>
+      <button class="tb-ic" id="logoutBtn" aria-label="Sair" title="Sair do estúdio">⏻</button>
     </div>
-  </aside>
+  </header>
 
   <main class="main" id="main" tabindex="-1"></main>
 </div>
@@ -73,10 +56,12 @@
 <script src="assets/js/motion.js"></script>
 <script src="assets/js/zip.js"></script>
 <script src="assets/js/blocks.js"></script>
+<script src="assets/js/insights.js"></script>
 <script src="assets/js/app-work.js"></script>
 <script src="assets/js/app-finance.js"></script>
 <script src="assets/js/app-site.js"></script>
 <script src="assets/js/app-ar.js"></script>
+<script src="assets/js/app-growth.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>

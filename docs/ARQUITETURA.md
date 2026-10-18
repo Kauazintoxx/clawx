@@ -18,6 +18,9 @@ assets/js/app-work.js     projetos e prazos, tarefas, propostas acompanhadas
 assets/js/app-finance.js  fluxo de caixa, contas a receber/pagar, vencimentos, relatórios, projeção
 assets/js/app-site.js     construtor do site: aparência, páginas/landing (blocos), blog, depoimentos, SEO
 assets/js/app-ar.js       realidade aumentada (painel)
+assets/js/insights.js     inteligência: prioridade de clientes, oportunidades de receita, fila de edição,
+                          lucro por serviço, pós-venda, jornada do cliente, preparação, cores do arquivo
+assets/js/app-growth.js   início em cards, oportunidades, fila, lucro, pós-venda, arquivo, preparação
 assets/js/blocks.js       renderização dos blocos das páginas públicas + SEO (meta, Open Graph, schema.org)
 assets/js/zip.js          ZIP no navegador (download da galeria, exportação para gráfica)
 assets/vendor/qrcode.js   qrcode-generator (MIT, Kazuhiko Arase)

@@ -235,6 +235,7 @@
     ];
     s.ar ??= [];
     s.site.blog ??= true;
+    window.Insights?.ensure(s, { uid });
     return s;
   }
 
