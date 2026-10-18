@@ -12,7 +12,14 @@
   const studio = () => O.get().studio;
   const lead = () => O.get().leads.find((l) => l.id === g.leadId);
   const isSale = () => g.type === "venda";
-  const locked = () => !isSale() && g.status === "finalizada";
+  const isMulti = () => !!g.multi && (g.clients || []).length > 0;
+  let cid = sessionStorage.getItem("ob-cid-" + id);
+  const me = () => (isMulti() ? g.clients.find((c) => c.id === cid) : null);
+  /** Seleção de quem está vendo: a própria (galeria compartilhada) ou a da galeria. */
+  const sel = () => (isMulti() ? g.selections?.[cid] || [] : g.selection);
+  const cstate = () => (isMulti() ? g.clientState?.[cid] || {} : { status: g.status, finalizedAt: g.finalizedAt });
+  const isFree = () => !g.limit;
+  const locked = () => !isSale() && cstate().status === "finalizada";
 
   const ui = { filter: "all", size: "", compare: false, cmp: [], lb: -1, list: [], query: "", dirty: false };
   const cartKey = "ob-cart-" + id, ordersKey = "ob-orders-" + id;
@@ -22,7 +29,7 @@
   function readJSON(k, d) { try { return JSON.parse(sessionStorage.getItem(k)) ?? d; } catch (e) { return d; } }
   function saveCart() { sessionStorage.setItem(cartKey, JSON.stringify(cart)); }
   function mutate(fn) { O.update((s) => { const x = s.galleries.find((y) => y.id === id); fn(x, s); }); g = find(); }
-  const firstName = () => (g.client || "Cliente").split(" ")[0];
+  const firstName = () => ((me()?.name) || g.client || "Cliente").split(" ")[0];
   const photoById = (pid) => g.photos.find((p) => p.id === pid);
   const num = (pid) => g.photos.findIndex((p) => p.id === pid) + 1;
 
@@ -53,9 +60,18 @@
         return;
       }
       sessionStorage.setItem("ob-unlock-" + id, "1");
+      if (isMulti() && !me()) return chooseWho();
       enter();
     });
-    if ((!g.password || unlocked) && sessionStorage.getItem("ob-entered-" + id)) enter(true);
+    if ((!g.password || unlocked) && sessionStorage.getItem("ob-entered-" + id) && (!isMulti() || me())) enter(true);
+  }
+
+  /** Galeria compartilhada: cada pessoa entra com o próprio nome e escolhe as suas. */
+  function chooseWho() {
+    const f = $("#gateForm");
+    f.innerHTML = `<p class="mono" style="flex-basis:100%;margin:0 0 4px">Quem está escolhendo?</p>
+      <div class="who">${g.clients.map((c) => `<button type="button" class="btn btn--ghost" data-c="${c.id}">${O.esc(c.name)}</button>`).join("")}</div>`;
+    $$("[data-c]", f).forEach((b) => (b.onclick = () => { cid = b.dataset.c; sessionStorage.setItem("ob-cid-" + id, cid); sessionStorage.removeItem("ob-entered-" + id); enter(); }));
   }
 
   function enter(quick) {
@@ -78,7 +94,8 @@
     $("#introTitle").innerHTML = isSale() ? `Encontre suas fotos, <em>${O.esc(g.title)}.</em>` : `Olá, ${O.esc(firstName())}. <em>Escolha as suas.</em>`;
     $("#introHow").textContent = isSale()
       ? `Busque pelo seu número de peito, adicione ao carrinho e pague com Pix. Foto avulsa ${O.money(g.unitPrice)}${(g.packages || []).map((p) => ` · ${p.qty} por ${O.money(p.price)}`).join("")}.`
-      : `Seu pacote inclui ${g.limit} fotos. Toque no ♥ para escolher, abra a foto para comentar. Cada foto além do pacote custa ${O.money(g.extraPrice)}. Quando terminar, é só finalizar na barra de baixo.`;
+      : isFree() ? `Escolha quantas fotos quiser: toque no ♥, abra a foto para comentar e finalize na barra de baixo.${isMulti() ? " Cada pessoa faz a própria seleção." : ""}`
+      : `Seu pacote inclui ${g.limit} fotos. Toque no ♥ para escolher, abra a foto para comentar. Cada foto além do pacote custa ${O.money(g.extraPrice)}. Quando terminar, é só finalizar na barra de baixo.${isMulti() ? " Cada pessoa faz a própria seleção." : ""}`;
 
     if (isSale()) {
       $("#searchBox").hidden = false; $("#cartBtn").hidden = false; $("#fSelBtn").firstChild.textContent = "No carrinho ";
@@ -116,6 +133,10 @@
       $$("#grid .ph").forEach((el) => (el.dataset.drawn = ""));
       requestAnimationFrame(drawVisible);
     });
+    $("#showBtn").addEventListener("click", slideshow);
+    $("#dlAllBtn").addEventListener("click", downloadAll);
+    $("#showPause").addEventListener("click", () => { if (showT) { clearTimeout(showT); showT = null; $("#showPause").textContent = "▶ Continuar"; } else { slideshow(); } });
+    $("#showStop").addEventListener("click", () => { stopShow(); closeLb(); });
     $("#compareBtn").addEventListener("click", () => {
       ui.compare = !ui.compare; ui.cmp = [];
       $("#compareBtn").classList.toggle("on", ui.compare);
@@ -159,7 +180,7 @@
     O.onChange(() => { g = find(); if (g) updateMarks(); });
     // saiu sem finalizar? o fotógrafo fica sabendo (e pode mandar um lembrete)
     addEventListener("pagehide", () => {
-      if (ui.dirty && !isSale() && g.status !== "finalizada") O.update(() => O.log(`${firstName()} saiu sem finalizar (${g.selection.length} escolhidas) — vale um lembrete`, "warn"));
+      if (ui.dirty && !isSale() && cstate().status !== "finalizada") O.update(() => O.log(`${firstName()} saiu sem finalizar (${sel().length} escolhidas) — vale um lembrete`, "warn"));
     });
   }
 
@@ -176,7 +197,7 @@
   let io;
   function filtered() {
     let list = g.photos;
-    const chosen = isSale() ? cart : g.selection;
+    const chosen = isSale() ? cart : sel();
     if (ui.filter === "sel") list = list.filter((p) => chosen.includes(p.id));
     if (ui.filter === "com") list = list.filter((p) => g.comments[p.id]);
     if (ui.query) list = list.filter((p) => (p.tags || []).some((t) => t.startsWith(ui.query)));
@@ -198,7 +219,7 @@
       el.style.setProperty("--ar", (p.h / p.w) * 100 + "%");
       el.style.transitionDelay = Motion.beat(i % 8, 0.25) + "s";
       el.innerHTML = `<canvas class="prot" aria-label="Foto ${num(p.id)}"></canvas>
-        <span class="ph__num">${String(num(p.id)).padStart(3, "0")}</span>
+        <span class="ph__num">${String(num(p.id)).padStart(3, "0")}</span>${p.video ? '<span class="ph__vid">▶ vídeo</span>' : ""}
         ${isSale() ? `<span class="ph__price">${O.money(g.unitPrice)}</span>${p.tags ? `<span class="ph__tags">${p.tags.map((t) => `<span>#${t}</span>`).join("")}</span>` : ""}` : ""}
         <button class="ph__heart" aria-label="${isSale() ? "Adicionar ao carrinho" : "Escolher foto"} ${num(p.id)}">${isSale() ? "+" : "♥"}</button>`;
       el.querySelector(".ph__heart").addEventListener("click", (e) => { e.stopPropagation(); toggle(p.id, el); });
@@ -221,14 +242,14 @@
     }).catch(() => { cv.classList.add("ready"); });
   }
   function drawVisible() { $$("#grid .ph").forEach((el) => { const r = el.getBoundingClientRect(); if (r.top < innerHeight + 300 && r.bottom > -300) draw(el); }); }
-  const wmClient = () => isSale() ? ($("#buyerEmail")?.value || "offbeat.foto") : g.clientEmail || g.client;
+  const wmClient = () => isSale() ? ($("#buyerEmail")?.value || "offbeat.foto") : (me() ? me().email || me().name : g.clientEmail || g.client);
 
   function updateMarks() {
-    const chosen = isSale() ? cart : g.selection;
+    const chosen = isSale() ? cart : sel();
     $$("#grid .ph").forEach((el) => {
       const i = chosen.indexOf(el.dataset.id);
       el.classList.toggle("sel", i >= 0);
-      el.classList.toggle("extra", !isSale() && i >= g.limit);
+      el.classList.toggle("extra", !isSale() && !isFree() && i >= g.limit);
       const has = g.comments[el.dataset.id];
       let c = el.querySelector(".ph__com");
       if (has && !c && !isSale()) { c = document.createElement("span"); c.className = "ph__com"; c.textContent = "💬 comentário"; el.appendChild(c); }
@@ -238,6 +259,7 @@
     $("#fSel").textContent = chosen.length;
     $("#fCom").textContent = Object.keys(g.comments).length;
     document.body.classList.toggle("locked", locked());
+    $("#dlAllBtn").hidden = !g.photos.some((p) => canDownload(p.id));
     if (isSale()) { $("#cartCount").textContent = cart.length; } else dock();
     if (!$("#lb").hidden) syncLb();
   }
@@ -257,30 +279,38 @@
     ui.dirty = true;
     let added = false;
     mutate((x) => {
-      const i = x.selection.indexOf(pid);
-      if (i >= 0) x.selection.splice(i, 1); else { x.selection.push(pid); added = true; }
+      const list = isMulti() ? ((x.selections ||= {})[cid] ||= []) : x.selection;
+      const i = list.indexOf(pid);
+      if (i >= 0) list.splice(i, 1); else { list.push(pid); added = true; }
+      if (isMulti()) x.selection = [...new Set(Object.values(x.selections).flat())]; // painel vê a união de todos
       if (x.status === "enviada") x.status = "em-selecao";
     });
     const target = el || $(`.ph[data-id="${pid}"]`);
     if (target && added) { target.classList.remove("pop"); void target.offsetWidth; target.classList.add("pop"); }
-    if (added && g.selection.length === g.limit) O.toast(`Pacote completo! ${g.limit} fotos. Pode finalizar ou escolher extras.`, "ok");
-    if (added && g.selection.length === g.limit + 1) O.toast(`A partir daqui, cada foto é extra: ${O.money(g.extraPrice)}.`);
+    if (!isFree() && added && sel().length === g.limit) O.toast(`Pacote completo! ${g.limit} fotos. Pode finalizar ou escolher extras.`, "ok");
+    if (!isFree() && added && sel().length === g.limit + 1) O.toast(`A partir daqui, cada foto é extra: ${O.money(g.extraPrice)}.`);
   }
 
-  function extras() { return Math.max(0, g.selection.length - g.limit); }
+  function extras() { return isFree() ? 0 : Math.max(0, sel().length - g.limit); }
 
   function dock() {
-    const n = g.selection.length, L = g.limit, ex = extras();
+    const n = sel().length, L = g.limit, ex = extras(), cs = cstate();
     const ring = $("#ring"), wrap = $(".dock__ring");
-    ring.style.strokeDashoffset = CIRC * (1 - Math.min(1, n / L));
-    wrap.classList.toggle("full", n >= L);
+    ring.style.strokeDashoffset = CIRC * (1 - (isFree() ? (n ? 1 : 0) : Math.min(1, n / L)));
+    wrap.classList.toggle("full", isFree() ? n > 0 : n >= L);
     $("#ringN").textContent = n;
     const d = $("#dock");
-    if (g.status === "finalizada") {
+    if (cs.status === "finalizada") {
       $("#dockMain").textContent = `Seleção enviada · ${n} fotos`;
-      $("#dockSub").textContent = g.delivered ? "Suas fotos editadas estão liberadas para download." : `Finalizada em ${O.date(g.finalizedAt, { day: "2-digit", month: "long" })}. ${studio().name} já foi avisado.`;
+      $("#dockSub").textContent = g.delivered ? "Suas fotos editadas estão liberadas para download." : `Finalizada em ${O.date(cs.finalizedAt, { day: "2-digit", month: "long" })}. ${studio().name} já foi avisado.`;
       $("#finishBtn").innerHTML = g.delivered ? 'Baixar tudo <span class="arr">↓</span>' : 'Ver resumo <span class="arr">→</span>';
       d.classList.remove("ready");
+      return;
+    }
+    if (isFree()) {
+      $("#dockMain").textContent = `${n} foto${n === 1 ? "" : "s"} escolhida${n === 1 ? "" : "s"}${me() ? ` · ${me().name.split(" ")[0]}` : ""}`;
+      $("#dockSub").textContent = n ? "Seleção livre — escolha quantas quiser e finalize" : "Toque no ♥ para escolher";
+      d.classList.toggle("ready", n > 0);
       return;
     }
     $("#dockMain").textContent = ex ? `${L} do pacote + ${ex} extra${ex > 1 ? "s" : ""}` : `${n} de ${L} fotos do pacote`;
@@ -289,26 +319,30 @@
   }
 
   function finishFlow() {
-    if (g.status === "finalizada") { if (g.delivered) return downloadAll(); return summaryModal(); }
-    const n = g.selection.length, ex = extras();
+    if (cstate().status === "finalizada") { if (g.delivered) return downloadAll(); return summaryModal(); }
+    const n = sel().length, ex = extras();
     if (!n) { O.toast("Escolha pelo menos uma foto antes de finalizar."); return; }
     modal(`
       <button class="lb__x" data-close aria-label="Fechar">×</button>
       <p class="mono">Revisar antes de enviar</p>
       <h2>Finalizar seleção?</h2>
       <div class="row"><span>Fotos escolhidas</span><b>${n}</b></div>
-      <div class="row"><span>Incluídas no pacote</span><b>${Math.min(n, g.limit)} de ${g.limit}</b></div>
-      <div class="row"><span>Extras</span><b>${ex} × ${O.money(g.extraPrice)}</b></div>
+      ${isFree() ? '<div class="row"><span>Modo</span><b>Seleção livre</b></div>' : `<div class="row"><span>Incluídas no pacote</span><b>${Math.min(n, g.limit)} de ${g.limit}</b></div>
+      <div class="row"><span>Extras</span><b>${ex} × ${O.money(g.extraPrice)}</b></div>`}
       <div class="row"><span>Comentários</span><b>${Object.keys(g.comments).length}</b></div>
       <div class="row"><span><strong>Total a pagar agora</strong></span><b>${O.money(ex * g.extraPrice)}</b></div>
-      ${n < g.limit ? `<p class="mono" style="margin-top:14px;color:var(--warn)">Você ainda pode escolher ${g.limit - n} foto${g.limit - n > 1 ? "s" : ""} sem custo.</p>` : ""}
+      ${!isFree() && n < g.limit ? `<p class="mono" style="margin-top:14px;color:var(--warn)">Você ainda pode escolher ${g.limit - n} foto${g.limit - n > 1 ? "s" : ""} sem custo.</p>` : ""}
       <div class="acts"><button class="btn btn--red" id="confirmFinish">Enviar seleção <span class="arr">→</span></button><button class="btn btn--ghost" data-close>Continuar escolhendo</button></div>`);
     $("#confirmFinish").addEventListener("click", () => {
       let pay = null;
       mutate((x, s) => {
-        x.status = "finalizada"; x.finalizedAt = Date.now();
+        if (isMulti()) {
+          (x.clientState ||= {})[cid] = { status: "finalizada", finalizedAt: Date.now() };
+          const all = x.clients.every((c) => x.clientState[c.id]?.status === "finalizada");
+          x.status = all ? "finalizada" : "em-selecao"; if (all) x.finalizedAt = Date.now();
+        } else { x.status = "finalizada"; x.finalizedAt = Date.now(); }
         if (ex > 0) {
-          pay = { id: O.uid("pay_"), desc: `Fotos extras — ${x.title} (${ex})`, amount: ex * x.extraPrice, status: "pendente", method: "pix", createdAt: Date.now(), leadId: x.leadId, galleryId: x.id };
+          pay = { id: O.uid("pay_"), desc: `Fotos extras — ${x.title}${me() ? ` · ${me().name}` : ""} (${ex})`, amount: ex * x.extraPrice, status: "pendente", method: "pix", createdAt: Date.now(), leadId: x.leadId, galleryId: x.id };
           s.payments.unshift(pay);
         }
         O.log(`${firstName()} finalizou a seleção (${n} fotos${ex ? `, ${ex} extras` : ""})`, "select");
@@ -326,8 +360,8 @@
 
   function summaryModal() {
     modal(`<button class="lb__x" data-close aria-label="Fechar">×</button>
-      <p class="mono">Seleção enviada</p><h2>${g.selection.length} fotos</h2>
-      <p>Finalizada em ${O.date(g.finalizedAt, { day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" })}. Se quiser trocar alguma foto, fale com ${studio().name}.</p>
+      <p class="mono">Seleção enviada</p><h2>${sel().length} fotos</h2>
+      <p>Finalizada em ${O.date(cstate().finalizedAt, { day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" })}. Se quiser trocar alguma foto, fale com ${studio().name}.</p>
       <div class="acts"><a class="btn btn--light" href="${$("#helpWa").href}" target="_blank" rel="noopener">Pedir para reabrir</a><button class="btn btn--ghost" data-close>Fechar</button></div>`);
   }
 
@@ -350,7 +384,7 @@
     $("#lb").hidden = false; document.body.style.overflow = "hidden";
     renderLb(); $("#lbClose").focus();
   }
-  function closeLb() { $("#lb").hidden = true; document.body.style.overflow = ""; ui.second = null; lastFocus?.focus?.(); }
+  function closeLb() { stopShow(); $("#lbVideo").pause(); $("#lb").hidden = true; document.body.style.overflow = ""; ui.second = null; lastFocus?.focus?.(); }
   function step(d) { if (!ui.list.length) return; ui.second = null; ui.lb = (ui.lb + d + ui.list.length) % ui.list.length; renderLb(); }
   function renderLb() {
     const p = ui.list[ui.lb]; if (!p) return;
@@ -362,13 +396,20 @@
     const availH = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
     const fit = (ph) => Math.max(200, Math.min(1400, (ui.second ? availW / 2 : availW), availH * (ph.w / ph.h)));
     const paint = (cv, ph) => O.loadImage(ph).then((im) => { Protect.drawProtected(cv, im, { width: fit(ph), watermark: g.watermark, client: wmClient(), center: canDownload(ph.id) ? "" : "prova" }); cv.style.animation = "none"; void cv.offsetWidth; cv.style.animation = ""; });
-    paint(c1, p);
-    if (ui.second) paint(c2, ui.second);
+    const vid = $("#lbVideo");
+    if (p.video && !ui.second) {
+      c1.hidden = true; vid.hidden = false;
+      O.getBlob("vid:" + p.id).then((b) => { if (b && ui.list[ui.lb] === p) { if (vid.dataset.u) URL.revokeObjectURL(vid.dataset.u); vid.dataset.u = vid.src = URL.createObjectURL(b); vid.play().catch(() => {}); } });
+    } else {
+      vid.pause(); vid.hidden = true; c1.hidden = false;
+      paint(c1, p);
+      if (ui.second) paint(c2, ui.second);
+    }
     syncLb();
   }
   function syncLb() {
     const p = ui.list[ui.lb]; if (!p) return;
-    const chosen = isSale() ? cart.includes(p.id) : g.selection.includes(p.id);
+    const chosen = isSale() ? cart.includes(p.id) : sel().includes(p.id);
     $("#lbName").textContent = `Foto ${String(num(p.id)).padStart(3, "0")} · ${ui.lb + 1} de ${ui.list.length}${ui.second ? ` · comparando com ${String(num(ui.second.id)).padStart(3, "0")}` : ""}`;
     const h = $("#lbHeart");
     h.classList.toggle("on", chosen);
@@ -386,20 +427,45 @@
   }
   function canDownload(pid) {
     if (isSale()) return paidOrderPhotos().includes(pid);
-    return !!g.delivered && g.selection.includes(pid);
+    return !!g.delivered && sel().includes(pid);
+  }
+  /** Arquivo de entrega: vídeo original, foto original em alta (ou a prévia, se não houver). */
+  async function fileOf(p) {
+    if (p.video) return (await O.getBlob("vid:" + p.id)) || null;
+    if (p.src) return (await fetch(p.src)).blob();
+    return (await O.getBlob("orig:" + p.id)) || (await O.getBlob(p.id));
   }
   async function download(p) {
     if (!canDownload(p.id)) return O.toast("Download ainda não liberado.");
-    try {
-      const blob = p.src ? await (await fetch(p.src)).blob() : await O.getBlob(p.id);
-      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = p.name || "foto.jpg";
-      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    } catch (e) { O.toast("Não foi possível baixar agora."); }
+    try { Zip.save(await fileOf(p), p.name || "foto.jpg"); }
+    catch (e) { O.toast("Não foi possível baixar agora."); }
   }
   async function downloadAll() {
     const list = g.photos.filter((p) => canDownload(p.id));
-    O.toast(`Baixando ${list.length} fotos…`, "ok");
-    for (const p of list) { await download(p); await new Promise((r) => setTimeout(r, 350)); }
+    if (!list.length) return O.toast("Nada liberado para download ainda.");
+    O.toast(`Preparando ZIP com ${list.length} arquivos…`, "ok");
+    try {
+      const files = [];
+      for (const p of list) { const b = await fileOf(p); if (b) files.push({ name: p.name || `${p.id}.jpg`, data: b }); }
+      Zip.save(await Zip.zip(files), `${g.title.replace(/[^\w\- ]+/g, "").trim() || "galeria"}.zip`);
+      O.update(() => O.log(`${isSale() ? "Comprador" : firstName()} baixou a galeria “${g.title}” (${files.length} arquivos)`, "info"));
+    } catch (e) { O.toast("Não foi possível gerar o ZIP."); }
+  }
+
+  /* ======================= SLIDESHOW ======================= */
+  let showT = null;
+  function slideshow() {
+    if (!ui.list.length) return;
+    openLb(ui.lb >= 0 && ui.lb < ui.list.length ? ui.lb : 0);
+    $("#lb").classList.add("lb--show");
+    document.documentElement.requestFullscreen?.().catch(() => {});
+    const tick = () => { showT = setTimeout(() => { step(1); tick(); }, ui.list[ui.lb]?.video ? 12000 : 4200); };
+    tick();
+    $("#showPause").textContent = "❚❚ Pausar";
+  }
+  function stopShow() {
+    clearTimeout(showT); showT = null; $("#lb").classList.remove("lb--show");
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   }
 
   /* ======================= VENDA / CARRINHO ======================= */

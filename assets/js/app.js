@@ -35,8 +35,8 @@
 
   /* ---------- roteador ---------- */
   const routes = {
-    "": overview, galerias: galleries, g: galleryDetail, crm, agenda, financeiro: finance,
-    albuns: albums, album: albumEditor, site: siteBuilder, ajustes: settings,
+    "": overview, galerias: galleries, g: galleryDetail, crm, agenda,
+    albuns: albums, album: albumEditor, ajustes: settings,
   };
   let cleanup = [], viewHook = null;
   function route() {
@@ -44,7 +44,7 @@
     const fn = routes[name] || overview;
     cleanup.forEach((f) => f()); cleanup = []; viewHook = null;
     app.classList.remove("nav-open");
-    const navKey = { "": "overview", g: "galerias", album: "albuns" }[name] ?? name;
+    const navKey = { "": "overview", g: "galerias", album: "albuns", projeto: "projetos", pagina: "site", post: "site" }[name] ?? name;
     $$("#nav a").forEach((a) => a.classList.toggle("on", a.dataset.r === navKey));
     main.innerHTML = '<div class="view"></div>';
     const v = main.firstChild;
@@ -62,6 +62,8 @@
     const pay = S().payments.filter((p) => p.status === "informado").length;
     $("#navSel").hidden = !sel; $("#navSel").textContent = sel;
     $("#navPay").hidden = !pay; $("#navPay").textContent = pay;
+    const late = S().tasks.filter((k) => !k.done && k.due < Date.now()).length;
+    $("#navTask").hidden = !late; $("#navTask").textContent = late;
   }
 
   // mudanças vindas da galeria do cliente (outra aba) → atualiza a view sem perder o lugar
@@ -155,6 +157,16 @@
           <div class="list">${upcoming.map((e) => { const d = new Date(e.date); return `<div><span class="date">${d.getDate()}<small>${d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</small></span><div class="grow"><strong>${esc(e.title)}</strong><small>${KINDS[e.kind] || "Evento"} · ${d.toLocaleDateString("pt-BR", { weekday: "long" })}</small></div><span class="chip">${O.ago(e.date).replace("há", "em").replace("agora", "hoje")}</span></div>`; }).join("") || '<p class="mono">Nada marcado.</p>'}</div>
         </div>
       </section>`;
+    const day0 = new Date(); day0.setHours(23, 59, 59, 999);
+    const tasks = s.tasks.filter((k) => !k.done && k.due <= day0.getTime()).sort((a, b) => a.due - b.due).slice(0, 6);
+    const dues = s.projects.flatMap((pj) => pj.stages.filter((st) => !st.done).slice(0, 1).map((st) => ({ pj, st }))).sort((a, b) => a.st.due - b.st.due).slice(0, 5);
+    const bills = s.expenses.filter((e) => e.status !== "pago" && e.dueDate < t + 7 * O.DAY).sort((a, b) => a.dueDate - b.dueDate).slice(0, 5);
+    v.insertAdjacentHTML("beforeend", `<section class="grid g3" style="margin-top:16px">
+      <div class="card"><h2>Tarefas de hoje <a class="mono" href="#/tarefas">Tarefas →</a></h2><div class="list">${tasks.map((k) => `<div><input type="checkbox" data-done="${k.id}" aria-label="Concluir"><div class="grow"><strong>${esc(k.title)}</strong><small>${k.due < t - O.DAY ? '<span style="color:var(--safelight)">atrasada</span> · ' : ""}${O.date(k.due)}</small></div><span class="chip ${k.priority === "alta" ? "red" : ""}">${k.priority}</span></div>`).join("") || '<p class="mono">Nada para hoje.</p>'}</div></div>
+      <div class="card"><h2>Prazos de entrega <a class="mono" href="#/projetos">Projetos →</a></h2><div class="list">${dues.map(({ pj, st }) => `<div><div class="grow"><a href="#/projeto/${pj.id}"><strong>${esc(pj.title)}</strong></a><small>${esc(st.name)} · ${O.date(st.due)}</small></div><span class="chip ${st.due < t ? "red" : st.due < t + 3 * O.DAY ? "warn" : ""}">${st.due < t ? "atrasado" : O.ago(st.due).replace("há", "em")}</span></div>`).join("") || '<p class="mono">Sem prazos.</p>'}</div></div>
+      <div class="card"><h2>Contas a vencer <a class="mono" href="#/financeiro/pagar">Pagar →</a></h2><div class="list">${bills.map((e) => `<div><div class="grow"><strong>${esc(e.desc)}</strong><small>${e.dueDate < t ? '<span style="color:var(--safelight)">vencida</span> · ' : ""}${O.date(e.dueDate)}</small></div><b class="mono">${money(e.amount)}</b></div>`).join("") || '<p class="mono">Nada vencendo.</p>'}</div></div>
+    </section>`);
+    $$("[data-done]", v).forEach((c) => (c.onchange = () => O.update((s2) => { const k = s2.tasks.find((x) => x.id === c.dataset.done); k.done = true; k.doneAt = Date.now(); O.log(`Tarefa concluída: ${k.title}`, "info"); })));
     v.querySelector("[data-act=gallery]").onclick = () => newGallery();
     v.querySelector("[data-act=lead]").onclick = () => newLead();
     Motion.counters(v);
@@ -168,24 +180,41 @@
   /* ======================================================================
      02 · GALERIAS
      ====================================================================== */
+  let gq = "", gf = "todas";
   function galleries(v) {
     const s = S();
+    const norm = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const FILTERS = [["todas", "Todas"], ["selecao", "Seleção"], ["venda", "Venda"], ["em-selecao", "Em seleção"], ["finalizada", "Finalizadas"], ["entregue", "Entregues"], ["expirando", "Expirando"]];
+    const match = (g) => {
+      if (gq && !norm(`${g.title} ${g.subtitle} ${g.client} ${(g.clients || []).map((c) => c.name).join(" ")}`).includes(norm(gq))) return false;
+      if (gf === "todas") return true;
+      if (gf === "selecao" || gf === "venda") return g.type === gf;
+      if (gf === "entregue") return g.delivered;
+      if (gf === "expirando") return g.expiresAt - Date.now() < 7 * O.DAY && g.expiresAt > Date.now();
+      return g.status === gf && !g.delivered;
+    };
+    const list = s.galleries.filter(match);
     v.innerHTML = `
-      <header class="vh"><div><p class="mono">${s.galleries.length} galerias</p><h1>Galerias <em>&</em> provas</h1></div>
+      <header class="vh"><div><p class="mono">${list.length} de ${s.galleries.length} galerias</p><h1>Galerias <em>&</em> provas</h1></div>
         <div class="acts"><button class="btn btn--red" id="ng">+ Nova galeria</button></div></header>
+      <div class="filters"><label class="search-in"><span aria-hidden="true">⌕</span><input id="gq" type="search" placeholder="Buscar por título ou cliente" value="${esc(gq)}"></label>
+        <div class="chips">${FILTERS.map(([k, n]) => `<button data-gf="${k}" class="${gf === k ? "on" : ""}">${n}</button>`).join("")}</div></div>
       <div class="gcards">
-        ${s.galleries.map((g) => {
+        ${list.map((g) => {
           const [lbl, cls] = GSTATUS[g.delivered ? "entregue" : g.status] || ["—", ""];
-          const pct = g.type === "venda" ? Math.min(100, ((g.orders || []).length / 20) * 100) : Math.min(100, (g.selection.length / (g.limit || 1)) * 100);
+          const pct = g.type === "venda" ? Math.min(100, ((g.orders || []).length / 20) * 100) : g.limit ? Math.min(100, (g.selection.length / g.limit) * 100) : (g.status === "finalizada" ? 100 : 40);
           return `<a class="gcard" href="#/g/${g.id}">
             <div class="gcard__img">${imgTag(g, g.cover || g.photos[0]?.id, 600)}<span class="chip ${cls}">${lbl}</span></div>
             <div class="gcard__body"><strong>${esc(g.title)}</strong><small>${esc(g.subtitle || "")}</small>
-              <small class="mono" style="margin-top:6px">${g.photos.length} fotos · ${g.type === "venda" ? `${(g.orders || []).length} pedidos` : `${g.selection.length}/${g.limit} escolhidas`} · ${g.views || 0} visitas</small>
+              <small class="mono" style="margin-top:6px">${g.photos.length} itens · ${g.type === "venda" ? `${(g.orders || []).length} pedidos` : g.limit ? `${g.selection.length}/${g.limit} escolhidas` : `${g.selection.length} escolhidas · livre`}${g.multi ? ` · ${g.clients.length} clientes` : ""} · ${g.views || 0} visitas</small>
               <div class="prog"><i style="width:${pct}%"></i></div></div></a>`;
         }).join("")}
         <a class="gnew" href="javascript:void 0" id="ng2"><div><span>+</span>Nova galeria</div></a>
       </div>`;
     $("#ng", v).onclick = $("#ng2", v).onclick = () => newGallery();
+    const q = $("#gq", v);
+    q.oninput = () => { gq = q.value; const pos = q.selectionStart; route(); const n = $("#gq"); n.focus(); n.setSelectionRange(pos, pos); };
+    $$("[data-gf]", v).forEach((b) => (b.onclick = () => { gf = b.dataset.gf; route(); }));
   }
 
   function newGallery(pre = {}) {
@@ -196,23 +225,33 @@
         <div class="field"><span>Título</span><input name="title" required placeholder="Marina & Teo" value="${esc(pre.title || "")}"></div>
         <div class="field"><span>Subtítulo</span><input name="subtitle" placeholder="Casamento · Fazenda Vila Rica" value="${esc(pre.subtitle || "")}"></div>
         <div class="field"><span>Vincular a cliente do CRM</span><select name="leadId"><option value="">— nenhum —</option>${leads.map((l) => `<option value="${l.id}" ${pre.leadId === l.id ? "selected" : ""}>${esc(l.name)} · ${esc(l.type)}</option>`).join("")}</select></div>
-        <div class="row2 sel-only"><div class="field"><span>Fotos no pacote</span><input name="limit" type="number" min="1" value="30"></div><div class="field"><span>Preço da foto extra (R$)</span><input name="extraPrice" type="number" min="0" step="0.01" value="25"></div></div>
+        <div class="field sel-only"><span>Modo de seleção</span><select name="mode"><option value="pacote">Quantidade definida (pacote + extras pagos)</option><option value="livre">Seleção livre (sem limite, sem extras)</option></select></div>
+        <div class="row2 sel-only pack-only"><div class="field"><span>Fotos no pacote</span><input name="limit" type="number" min="1" value="30"></div><div class="field"><span>Preço da foto extra (R$)</span><input name="extraPrice" type="number" min="0" step="0.01" value="25"></div></div>
+        <label class="switch sel-only">Galeria compartilhada entre vários clientes<small>Cada pessoa entra com o próprio nome e faz a própria seleção (ex.: noivos e pais, formandos, família)</small><input type="checkbox" name="multi"></label>
+        <div class="field multi-only" hidden><span>Clientes (um por linha: nome, e-mail)</span><textarea name="clients" rows="3" placeholder="Marina Duarte, marina@email.com&#10;Mãe da noiva, mae@email.com"></textarea></div>
         <div class="row2 sale-only" hidden><div class="field"><span>Preço da foto (R$)</span><input name="unitPrice" type="number" min="0" step="0.01" value="19.90"></div><div class="field"><span>Pacote 5 fotos (R$)</span><input name="pack5" type="number" min="0" step="0.01" value="79.90"></div></div>
         <div class="row2"><div class="field"><span>Senha (opcional)</span><input name="password" placeholder="ex: 2026"></div><div class="field"><span>Expira em (dias)</span><input name="days" type="number" min="1" value="15"></div></div>
         <div class="acts"><button class="btn btn--red" type="submit">Criar e enviar fotos →</button></div>
       </form>`);
     const f = $("#fg", d);
-    const sync = () => { const sale = f.type.value === "venda"; $(".sel-only", f).hidden = sale; $(".sale-only", f).hidden = !sale; };
-    f.type.onchange = sync;
+    const sync = () => {
+      const sale = f.type.value === "venda";
+      $$(".sel-only", f).forEach((el) => (el.hidden = sale)); $(".sale-only", f).hidden = !sale;
+      $(".pack-only", f).hidden = sale || f.mode.value === "livre"; $(".multi-only", f).hidden = sale || !f.multi.checked;
+    };
+    f.type.onchange = f.mode.onchange = f.multi.onchange = sync;
     f.leadId.onchange = () => { const l = leads.find((x) => x.id === f.leadId.value); if (l && !f.title.value) f.title.value = l.name; if (l && !f.subtitle.value) f.subtitle.value = l.type; };
     f.onsubmit = (e) => {
       e.preventDefault();
       const x = formData(f), l = leads.find((y) => y.id === x.leadId), id = O.uid("g_");
+      const free = x.type === "selecao" && x.mode === "livre";
+      const clients = x.type === "selecao" && x.multi ? (x.clients || "").split("\n").map((ln) => ln.split(",").map((t) => t.trim())).filter(([n]) => n).map(([name, email]) => ({ id: O.uid("c_"), name, email: email || "" })) : [];
       O.update((s) => {
         s.galleries.unshift({
           id, type: x.type, title: x.title, subtitle: x.subtitle, client: l?.name || (x.type === "venda" ? "Público do evento" : x.title),
           clientEmail: l?.email || "", clientPhone: l?.phone || "", createdAt: Date.now(), expiresAt: Date.now() + (+x.days || 15) * O.DAY,
-          password: x.password, limit: +x.limit || 0, extraPrice: +x.extraPrice || 0, unitPrice: +x.unitPrice || 0,
+          password: x.password, limit: free ? 0 : +x.limit || 0, extraPrice: free ? 0 : +x.extraPrice || 0, unitPrice: +x.unitPrice || 0,
+          free, multi: clients.length > 0, clients, selections: {}, clientState: {},
           packages: x.type === "venda" && +x.pack5 ? [{ qty: 5, price: +x.pack5 }] : [], watermark: `${s.studio.brand} · ${s.studio.name}`.toUpperCase(),
           allowDownload: false, status: x.type === "venda" ? "publicada" : "enviada", photos: [], cover: null, selection: [], comments: {}, views: 0, orders: [], leadId: x.leadId || null,
         });
@@ -257,13 +296,13 @@
   function subPhotos(box, g) {
     const sel = g.selection;
     box.innerHTML = `
-      <label class="drop" id="drop"><input type="file" id="files" accept="image/*" multiple hidden>
-        <span style="font:400 2rem/1 var(--f-display)">↥</span><strong>Arraste as fotos aqui ou clique para enviar</strong>
-        <span class="mono">JPG/PNG · otimizadas para 2000px automaticamente · ${g.photos.length} na galeria</span></label>
+      <label class="drop" id="drop"><input type="file" id="files" accept="image/*,video/*" multiple hidden>
+        <span style="font:400 2rem/1 var(--f-display)">↥</span><strong>Arraste fotos e vídeos aqui ou clique para enviar</strong>
+        <span class="mono">O original em alta fica guardado para a entrega · o cliente vê uma prévia protegida · ${g.photos.length} itens</span></label>
       <div class="upbar" id="upbar" hidden><i></i></div>
       <div class="pgrid">${g.photos.map((p, i) => {
         const k = sel.indexOf(p.id);
-        return `<div class="pthumb ${k >= 0 ? "sel" : ""}">${imgTag(g, p.id, 300)}<span class="n">${String(i + 1).padStart(3, "0")}</span>
+        return `<div class="pthumb ${k >= 0 ? "sel" : ""}">${imgTag(g, p.id, 300)}<span class="n">${p.video ? "▶ vídeo · " : ""}${String(i + 1).padStart(3, "0")}</span>
           ${k >= 0 ? `<span class="tag ${k >= g.limit && g.type !== "venda" ? "ex" : ""}">${k >= g.limit && g.type !== "venda" ? "extra" : "♥"}</span>` : ""}
           ${g.cover === p.id ? '<span class="tag cv">capa</span>' : ""}${g.comments[p.id] ? '<span class="com" title="' + esc(g.comments[p.id]) + '">💬</span>' : ""}
           <div class="ops"><button data-cover="${p.id}" title="Usar como capa">★</button><button data-del="${p.id}" title="Remover">×</button></div></div>`;
@@ -272,13 +311,13 @@
     input.onchange = () => upload(g, [...input.files]);
     ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
     ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
-    drop.addEventListener("drop", (e) => upload(g, [...e.dataTransfer.files].filter((f) => f.type.startsWith("image/"))));
+    drop.addEventListener("drop", (e) => upload(g, [...e.dataTransfer.files].filter((f) => /^(image|video)\//.test(f.type))));
     $$("[data-cover]", box).forEach((b) => (b.onclick = () => { O.update((s) => (s.galleries.find((x) => x.id === g.id).cover = b.dataset.cover)); O.toast("Capa atualizada.", "ok"); }));
     $$("[data-del]", box).forEach((b) => (b.onclick = () => {
       if (!confirm("Remover esta foto da galeria?")) return;
       const pid = b.dataset.del;
       O.update((s) => { const x = s.galleries.find((y) => y.id === g.id); x.photos = x.photos.filter((p) => p.id !== pid); x.selection = x.selection.filter((p) => p !== pid); if (x.cover === pid) x.cover = x.photos[0]?.id || null; });
-      O.delBlob(pid);
+      O.delBlob(pid); O.delBlob("orig:" + pid); O.delBlob("vid:" + pid);
     }));
   }
 
@@ -289,10 +328,16 @@
     const added = [];
     for (const f of files) {
       try {
-        const { blob, w, h } = await O.downscale(f);
         const id = O.uid("p_");
-        await O.putBlob(id, blob);
-        added.push({ id, w, h, name: f.name });
+        if (f.type.startsWith("video/")) {
+          const { blob, w, h } = await videoPoster(f);
+          await O.putBlob(id, blob); await O.putBlob("vid:" + id, f);
+          added.push({ id, w, h, name: f.name, video: true, size: f.size });
+        } else {
+          const { blob, w, h } = await O.downscale(f);
+          await O.putBlob(id, blob); await O.putBlob("orig:" + id, f); // original intacto para a entrega em alta
+          added.push({ id, w, h, name: f.name, size: f.size });
+        }
       } catch (e) { O.toast(`Falhou: ${f.name}`); }
       done++; bar.firstElementChild.style.width = (done / files.length) * 100 + "%";
     }
@@ -300,18 +345,44 @@
     O.toast(`${added.length} foto${added.length > 1 ? "s" : ""} adicionada${added.length > 1 ? "s" : ""}.`, "ok");
   }
 
+  /** Capa do vídeo: quadro de 1s, para a grade e a proteção funcionarem igual às fotos. */
+  function videoPoster(file) {
+    return new Promise((res, rej) => {
+      const v = document.createElement("video"), url = URL.createObjectURL(file);
+      v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
+      const fail = () => { URL.revokeObjectURL(url); rej(new Error("vídeo inválido")); };
+      v.onerror = fail;
+      v.onloadedmetadata = () => { v.currentTime = Math.min(1, (v.duration || 2) / 2); };
+      v.onseeked = () => {
+        const k = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight)), w = Math.round(v.videoWidth * k) || 1600, h = Math.round(v.videoHeight * k) || 900;
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        const x = c.getContext("2d"); x.drawImage(v, 0, 0, w, h);
+        x.fillStyle = "rgba(0,0,0,.35)"; x.beginPath(); x.arc(w / 2, h / 2, h / 8, 0, 7); x.fill();
+        x.fillStyle = "#fff"; x.beginPath(); x.moveTo(w / 2 - h / 24, h / 2 - h / 16); x.lineTo(w / 2 + h / 16, h / 2); x.lineTo(w / 2 - h / 24, h / 2 + h / 16); x.fill();
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? res({ blob: b, w, h }) : rej(new Error("capa"))), "image/jpeg", 0.85);
+      };
+      setTimeout(fail, 15000);
+    });
+  }
+
   function subSelection(box, g) {
     const sel = g.selection.map((pid) => ({ p: g.photos.find((x) => x.id === pid), i: g.photos.findIndex((x) => x.id === pid) })).filter((x) => x.p);
-    const ex = Math.max(0, sel.length - g.limit);
+    const ex = g.limit ? Math.max(0, sel.length - g.limit) : 0;
     const names = sel.map((x) => x.p.name.replace(/\.[^.]+$/, ""));
+    const multiHTML = g.multi ? `<div class="card" style="margin-bottom:16px"><h3>Seleção por cliente <span class="mono">${g.clients.length} pessoas</span></h3><div class="list">${g.clients.map((c) => {
+      const cs = g.clientState[c.id] || {}, n = (g.selections[c.id] || []).length;
+      return `<div><span class="av-s">${esc(c.name[0] || "?")}</span><div class="grow"><strong>${esc(c.name)}</strong><small>${esc(c.email || "sem e-mail")} · ${n} escolhidas</small></div><span class="chip ${cs.status === "finalizada" ? "ok" : n ? "warn" : ""}">${cs.status === "finalizada" ? "finalizou" : n ? "escolhendo" : "não abriu"}</span></div>`;
+    }).join("")}</div><p class="mono" style="text-transform:none;margin-top:10px">A exportação abaixo junta as escolhas de todos, sem repetir.</p></div>` : "";
     const lr = names.join(" OR ");
     box.innerHTML = `
       <section class="grid g4" style="margin-bottom:16px">
-        <div class="card kpi"><span class="mono">Escolhidas</span><b>${sel.length}</b><small>pacote de ${g.limit}</small></div>
+        <div class="card kpi"><span class="mono">Escolhidas</span><b>${sel.length}</b><small>${g.limit ? `pacote de ${g.limit}` : "seleção livre"}</small></div>
         <div class="card kpi"><span class="mono">Extras</span><b>${ex}</b><small>${money(ex * g.extraPrice)}</small></div>
         <div class="card kpi"><span class="mono">Comentários</span><b>${Object.keys(g.comments).length}</b><small>pedidos de ajuste</small></div>
         <div class="card kpi"><span class="mono">Status</span><b style="font-size:1.6rem">${g.status === "finalizada" ? "Finalizada" : "Em aberto"}</b><small>${g.finalizedAt ? O.date(g.finalizedAt, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "cliente ainda escolhendo"}</small></div>
       </section>
+      ${multiHTML}
       <div class="card" style="margin-bottom:16px"><h3>Exportar para edição</h3>
         <div class="field"><span>Filtro para o Lightroom (busca por nome de arquivo)</span><textarea readonly rows="2" id="lr">${esc(lr)}</textarea></div>
         <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -321,14 +392,15 @@
           <button class="btn btn--sm ${g.delivered ? "btn--ghost" : "btn--red"}" id="deliver" ${sel.length ? "" : "disabled"}>${g.delivered ? "Revogar download" : "Liberar download das escolhidas"}</button>
         </div></div>
       ${Object.keys(g.comments).length ? `<div class="card" style="margin-bottom:16px"><h3>Comentários do cliente</h3><div class="list">${Object.entries(g.comments).map(([pid, c]) => { const i = g.photos.findIndex((p) => p.id === pid); return i < 0 ? "" : `<div>${imgTag(g, pid, 120, 'style="width:56px;height:42px;object-fit:cover;border-radius:6px"')}<div class="grow"><strong>Foto ${String(i + 1).padStart(3, "0")}</strong><small>${esc(c)}</small></div></div>`; }).join("")}</div></div>` : ""}
-      <div class="pgrid">${sel.map((x, k) => `<div class="pthumb">${imgTag(g, x.p.id, 300)}<span class="n">${String(x.i + 1).padStart(3, "0")} · ${esc(x.p.name)}</span>${k >= g.limit ? '<span class="tag ex">extra</span>' : ""}</div>`).join("") || '<p class="mono">Nenhuma foto escolhida ainda.</p>'}</div>`;
+      <div class="pgrid">${sel.map((x, k) => `<div class="pthumb">${imgTag(g, x.p.id, 300)}<span class="n">${String(x.i + 1).padStart(3, "0")} · ${esc(x.p.name)}</span>${g.limit && k >= g.limit ? '<span class="tag ex">extra</span>' : ""}</div>`).join("") || '<p class="mono">Nenhuma foto escolhida ainda.</p>'}</div>`;
     $("#cpLr", box).onclick = () => O.copy(lr, "Filtro copiado — cole na busca de texto do Lightroom.");
     $("#csv", box).onclick = () => {
-      const rows = [["ordem", "arquivo", "extra", "comentario"], ...sel.map((x, k) => [k + 1, x.p.name, k >= g.limit ? "sim" : "nao", g.comments[x.p.id] || ""])];
+      const who = (pid) => g.multi ? g.clients.filter((c) => (g.selections[c.id] || []).includes(pid)).map((c) => c.name).join(" + ") : g.client;
+      const rows = [["ordem", "arquivo", "extra", "escolhida_por", "comentario"], ...sel.map((x, k) => [k + 1, x.p.name, g.limit && k >= g.limit ? "sim" : "nao", who(x.p.id), g.comments[x.p.id] || ""])];
       const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
       const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" })); a.download = `selecao-${g.id}.csv`; a.click();
     };
-    $("#reopen", box)?.addEventListener("click", () => O.update((s) => { const x = s.galleries.find((y) => y.id === g.id); x.status = "em-selecao"; x.finalizedAt = null; O.log(`Seleção de “${x.title}” reaberta`, "info"); }));
+    $("#reopen", box)?.addEventListener("click", () => O.update((s) => { const x = s.galleries.find((y) => y.id === g.id); x.status = "em-selecao"; x.finalizedAt = null; Object.values(x.clientState || {}).forEach((c) => { c.status = "em-selecao"; c.finalizedAt = null; }); O.log(`Seleção de “${x.title}” reaberta`, "info"); }));
     $("#deliver", box).onclick = () => O.update((s) => { const x = s.galleries.find((y) => y.id === g.id); x.delivered = !x.delivered; O.log(x.delivered ? `Download liberado em “${x.title}”` : `Download revogado em “${x.title}”`, "info"); });
   }
 
@@ -466,11 +538,13 @@
       <p style="color:var(--muted);margin:0">${money(l.value)} · ${new Date(l.eventDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
       <div class="qa">
         <a target="_blank" rel="noopener" href="${waLink(l.phone, `Oi ${l.name.split(" ")[0]}! Aqui é ${s.studio.name}, da ${s.studio.brand}.`)}"><i>💬</i>WhatsApp</a>
-        <button data-a="proposal"><i>📄</i>Proposta em PDF</button>
+        <button data-a="proposal"><i>📄</i>Nova proposta</button>
         <button data-a="contract"><i>✍️</i>${l.contract ? "Ver contrato" : "Gerar contrato"}</button>
         <button data-a="charge"><i>⚡</i>Cobrança Pix</button>
         <button data-a="gallery"><i>🖼️</i>${gals.length ? "Nova galeria" : "Criar galeria"}</button>
         <button data-a="event"><i>📅</i>Agendar</button>
+        <button data-a="project"><i>🎞️</i>Criar projeto</button>
+        <button data-a="task"><i>✓</i>Nova tarefa</button>
       </div>
       <form class="form" id="fe">
         <div class="field"><span>Etapa</span><select name="stage">${STAGES.map(([k, n]) => `<option value="${k}" ${k === l.stage ? "selected" : ""}>${n}</option>`).join("")}</select></div>
@@ -484,6 +558,9 @@
         ${l.contract ? `<div><span>✍️</span><div class="grow"><strong>${esc(l.contract.title)}</strong><small>${l.contract.signedAt ? `Assinado em ${O.date(l.contract.signedAt)}` : "Aguardando assinatura no portal do cliente"}</small></div></div>` : ""}
         ${gals.map((g) => `<div><span>🖼️</span><div class="grow"><a href="#/g/${g.id}"><strong>${esc(g.title)}</strong></a><small>${(GSTATUS[g.status] || [""])[0]} · ${g.selection.length} escolhidas</small></div></div>`).join("")}
         ${pays.map((p) => `<div><span>⚡</span><div class="grow"><strong>${esc(p.desc)}</strong><small>${money(p.amount)} · ${p.status}</small></div></div>`).join("")}
+        ${s.proposals.filter((p) => p.leadId === id).map((p) => `<div><span>📄</span><div class="grow"><strong>${esc(p.title)}</strong><small>Proposta · ${p.status}${p.viewedAt ? ` · vista ${O.ago(p.viewedAt)}` : ""}</small></div></div>`).join("")}
+        ${s.projects.filter((p) => p.leadId === id).map((p) => `<div><span>🎞️</span><div class="grow"><a href="#/projeto/${p.id}"><strong>${esc(p.title)}</strong></a><small>Projeto · ${p.stages.filter((x) => x.done).length}/${p.stages.length} etapas</small></div></div>`).join("")}
+        ${s.tasks.filter((k) => k.leadId === id && !k.done).map((k) => `<div><span>✓</span><div class="grow"><strong>${esc(k.title)}</strong><small>Tarefa · ${O.date(k.due)}</small></div></div>`).join("")}
         ${evs.map((e) => `<div><span>📅</span><div class="grow"><strong>${esc(e.title)}</strong><small>${O.date(e.date, { day: "2-digit", month: "long" })}</small></div></div>`).join("")}
         ${!l.contract && !gals.length && !pays.length && !evs.length ? '<p class="mono">Sem histórico ainda.</p>' : ""}
       </div>`);
@@ -495,7 +572,9 @@
     $("#delL", d).onclick = () => { if (confirm(`Excluir ${l.name}?`)) { O.update((s2) => (s2.leads = s2.leads.filter((y) => y.id !== id))); closeDrawer(); } };
     $$("[data-a]", d).forEach((b) => (b.onclick = () => {
       const a = b.dataset.a;
-      if (a === "proposal") printProposal(l);
+      if (a === "proposal") { closeDrawer(); window.OBActions.proposal(l.id); }
+      if (a === "project") { closeDrawer(); window.OBActions.project(l.id); }
+      if (a === "task") { closeDrawer(); window.OBActions.task({ leadId: l.id }); }
       if (a === "contract") contractDialog(l.id);
       if (a === "charge") { closeDrawer(); newCharge({ leadId: l.id, desc: `Sinal 30% — ${l.type} ${l.name}`, amount: Math.round(l.value * 0.3) }); }
       if (a === "gallery") { closeDrawer(); newGallery({ leadId: l.id, title: l.name, subtitle: l.type }); }
@@ -608,43 +687,17 @@
   /* ======================================================================
      05 · FINANCEIRO
      ====================================================================== */
-  let payFilter = "todos";
-  function finance(v) {
-    const s = S();
-    const paid = s.payments.filter((p) => p.status === "pago").reduce((a, p) => a + p.amount, 0);
-    const open = s.payments.filter((p) => p.status !== "pago");
-    const informed = s.payments.filter((p) => p.status === "informado");
-    const list = s.payments.filter((p) => payFilter === "todos" || (payFilter === "abertos" ? p.status !== "pago" : p.status === "pago")).sort((a, b) => b.createdAt - a.createdAt);
-    v.innerHTML = `
-      <header class="vh"><div><p class="mono">Pix direto na sua conta · sem taxa</p><h1>Financeiro</h1></div>
-        <div class="acts"><button class="btn btn--red" id="nc">+ Nova cobrança</button></div></header>
-      <section class="grid g3" style="margin-bottom:16px">
-        <div class="card kpi"><span class="mono">Recebido (total)</span><b>${money(paid)}</b></div>
-        <div class="card kpi"><span class="mono">Em aberto</span><b>${money(open.reduce((a, p) => a + p.amount, 0))}</b><small>${open.length} cobranças</small></div>
-        <div class="card kpi"><span class="mono">Cliente diz que pagou</span><b>${informed.length}</b><small>confira no extrato e confirme</small></div>
-      </section>
-      <div class="card"><nav class="subtabs" style="margin-top:-6px">${["todos", "abertos", "pagos"].map((k) => `<button data-f="${k}" class="${k === payFilter ? "on" : ""}">${k[0].toUpperCase() + k.slice(1)}</button>`).join("")}</nav>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Descrição</th><th>Cliente</th><th>Data</th><th>Status</th><th class="r">Valor</th><th></th></tr></thead><tbody>
-        ${list.map((p) => { const l = s.leads.find((x) => x.id === p.leadId); return `<tr><td>${esc(p.desc)}</td><td>${esc(l?.name || "—")}</td><td>${O.date(p.createdAt)}</td>
-          <td><span class="chip ${p.status === "pago" ? "ok" : p.status === "informado" ? "blue" : "warn"}">${p.status === "informado" ? "informado" : p.status}</span></td><td class="r">${money(p.amount)}</td>
-          <td class="r" style="white-space:nowrap">${p.status !== "pago" ? `<button class="btn btn--sm btn--ghost" data-pix="${p.id}">Pix</button> <button class="btn btn--sm" data-paid="${p.id}">Confirmar</button>` : ""}</td></tr>`; }).join("")}
-        </tbody></table></div></div>`;
-    $("#nc", v).onclick = () => newCharge();
-    $$("[data-f]", v).forEach((b) => (b.onclick = () => { payFilter = b.dataset.f; route(); }));
-    $$("[data-pix]", v).forEach((b) => (b.onclick = () => pixDialog(S().payments.find((p) => p.id === b.dataset.pix))));
-    $$("[data-paid]", v).forEach((b) => (b.onclick = () => O.update((s2) => { const p = s2.payments.find((x) => x.id === b.dataset.paid); p.status = "pago"; p.createdAt = Date.now();
-      if (p.galleryId) { const g = s2.galleries.find((x) => x.id === p.galleryId); if (g && !p.orderId) g.paid = true; if (g && p.orderId) { const o = (g.orders || []).find((x) => x.id === p.orderId); if (o) o.status = "pago"; } }
-      O.log(`Pagamento confirmado — ${p.desc} · ${money(p.amount)}`, "pay"); })));
-  }
   function newCharge(pre = {}) {
     const d = dialog(`<p class="mono">Cobrança</p><h2>Gerar link de pagamento</h2><form class="form" id="fch">
       <div class="field"><span>Descrição</span><input name="desc" required value="${esc(pre.desc || "")}" placeholder="Sinal 30% — Casamento"></div>
       <div class="row2"><div class="field"><span>Valor (R$)</span><input name="amount" type="number" step="0.01" min="0.01" required value="${pre.amount || ""}"></div>
+      <div class="field"><span>Vencimento</span><input name="due" type="date" value="${new Date(Date.now() + 3 * O.DAY).toISOString().slice(0, 10)}"></div></div>
+      <div class="row2"><div class="field"><span>Categoria</span><select name="category"><option>Serviço</option><option>Sinal</option><option>Saldo</option><option>Fotos extras</option><option>Álbum</option><option>Outros</option></select></div>
       <div class="field"><span>Cliente</span><select name="leadId"><option value="">—</option>${S().leads.map((l) => `<option value="${l.id}" ${l.id === pre.leadId ? "selected" : ""}>${esc(l.name)}</option>`).join("")}</select></div></div>
       <div class="acts"><button class="btn btn--red">Gerar Pix</button></div></form>`);
     $("#fch", d).onsubmit = (e) => {
       e.preventDefault(); const x = formData(e.target);
-      const p = { id: O.uid("pay_"), desc: x.desc, amount: +x.amount, status: "pendente", method: "pix", createdAt: Date.now(), leadId: x.leadId || null };
+      const p = { id: O.uid("pay_"), desc: x.desc, amount: +x.amount, status: "pendente", method: "pix", createdAt: Date.now(), dueDate: new Date((x.due || new Date().toISOString().slice(0, 10)) + "T18:00").getTime(), category: x.category, leadId: x.leadId || null };
       O.update((s) => { s.payments.unshift(p); O.log(`Cobrança criada: ${x.desc} · ${money(p.amount)}`, "info"); });
       pixDialog(p);
     };
@@ -671,7 +724,8 @@
     v.innerHTML = `<header class="vh"><div><p class="mono">${s.albums.length} projetos</p><h1>Álbuns <em>& lâminas</em></h1></div>
       <div class="acts"><button class="btn btn--red" id="na">+ Novo álbum</button></div></header>
       <div class="gcards">${s.albums.map((a) => { const g = s.galleries.find((x) => x.id === a.galleryId); const first = a.spreads.flatMap((sp) => sp.slots).find(Boolean);
-        return `<a class="gcard" href="#/album/${a.id}"><div class="gcard__img">${g ? imgTag(g, first || g.cover, 600) : ""}<span class="chip">${a.spreads.length} lâminas</span></div><div class="gcard__body"><strong>${esc(a.title)}</strong><small>${esc(g?.title || "")} · ${a.size}</small></div></a>`; }).join("")}
+        const AST = { rascunho: ["rascunho", ""], enviado: ["com o cliente", "warn"], ajustes: ["pediu ajustes", "red"], aprovado: ["aprovado", "ok"] }[a.status] || ["rascunho", ""];
+        return `<a class="gcard" href="#/album/${a.id}"><div class="gcard__img">${g ? imgTag(g, first || g.cover, 600) : ""}<span class="chip ${AST[1]}">${AST[0]} · ${a.spreads.length} lâminas</span></div><div class="gcard__body"><strong>${esc(a.title)}</strong><small>${esc(g?.title || "")} · ${a.size}</small></div></a>`; }).join("")}
       <a class="gnew" href="javascript:void 0" id="na2"><div><span>+</span>Novo álbum</div></a></div>`;
     $("#na", v).onclick = $("#na2", v).onclick = () => {
       const opts = s.galleries.filter((g) => g.type === "selecao");
@@ -708,7 +762,10 @@
     const layoutIcon = (L) => { const cols = { 1: "1fr", 2: "1fr 1fr", 3: "2fr 1fr 1fr", 4: "1fr 1fr 1fr 1fr" }[L]; return `<button data-l="${L}" class="${sp.layout === L ? "on" : ""}" style="grid-template-columns:${cols}" title="${L} foto(s)">${"<i></i>".repeat(+L)}</button>`; };
     v.innerHTML = `<a class="back" href="#/albuns">← Álbuns</a>
       <header class="vh"><div><p class="mono">${esc(g?.title || "")} · ${a.size} · ${a.spreads.length} lâminas</p><h1>${esc(a.title)}</h1></div>
-        <div class="acts"><button class="btn btn--ghost" id="prev">▶ Folhear</button><button class="btn btn--red" id="addS">+ Lâmina</button></div></header>
+        <div class="acts"><button class="btn btn--ghost" id="prev">▶ Folhear</button><a class="btn btn--ghost" href="${O.albumLink(a)}?modo=3d" target="_blank" rel="noopener">Ver em 3D ↗</a><button class="btn btn--ghost" id="exportA">Exportar p/ gráfica</button><button class="btn btn--red" id="sendA">${a.status === "rascunho" ? "Enviar para aprovação" : "Link de aprovação"}</button><button class="btn btn--ghost" id="addS">+ Lâmina</button></div></header>
+      ${a.status !== "rascunho" ? `<div class="card" style="margin-bottom:16px"><h3>Aprovação do cliente <span class="chip ${a.status === "aprovado" ? "ok" : a.status === "ajustes" ? "red" : "warn"}">${a.status === "aprovado" ? "aprovado" : a.status === "ajustes" ? "pediu ajustes" : "aguardando"}</span></h3>
+        ${a.approval ? `<p style="margin:0 0 8px">${a.status === "aprovado" ? "Aprovado" : "Ajustes pedidos"} por <strong>${esc(a.approval.name)}</strong> em ${O.date(a.approval.at, { day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" })}${a.approval.note ? ` — “${esc(a.approval.note)}”` : ""}</p>` : ""}
+        <div class="list">${Object.entries(a.comments || {}).filter(([, c]) => c).map(([i, c]) => `<div><span class="date">${+i + 1}<small>lâmina</small></span><div class="grow"><small>${esc(c)}</small></div></div>`).join("") || '<p class="mono">Sem comentários nas lâminas.</p>'}</div></div>` : ""}
       <div class="ab"><div class="ab__spreads">${a.spreads.map((x, i) => `<button data-s="${i}" class="${i === spreadIdx ? "on" : ""}">${x.slots.slice(0, 2).map((pid) => (pid && g ? imgTag(g, pid, 160) : "<i></i>")).join("")}<span>${String(i + 1).padStart(2, "0")}</span></button>`).join("")}</div>
         <div><div class="ab__stage"><div class="spread L${sp.layout}" id="spread">${sp.slots.map((pid, i) => `<div class="slot ${pid ? "" : "empty"}" data-i="${i}">${pid && g ? imgTag(g, pid, 900) + `<button data-rm="${i}" aria-label="Tirar foto">×</button>` : ""}</div>`).join("")}</div></div>
           <div class="ab__tools"><div class="layouts">${["1", "2", "3", "4"].map(layoutIcon).join("")}</div>
@@ -735,7 +792,52 @@
       slot.addEventListener("click", () => { if (picked) { put(picked); picked = null; } });
     });
     $("#prev", v).onclick = () => flipbook(a, g);
+    $("#sendA", v).onclick = () => {
+      if (a.status === "rascunho" || a.status === "ajustes") save((A) => { A.status = "enviado"; A.sentAt = Date.now(); O.log(`Álbum “${A.title}” enviado para aprovação`, "info"); });
+      const link = O.albumLink(a), phone = g?.clientPhone;
+      dialog(`<p class="mono">Aprovação online</p><h2>Link do álbum</h2><div class="field"><span>O cliente folheia em 3D, comenta cada lâmina e aprova</span><input readonly value="${esc(link)}"></div>
+        <div class="acts"><button class="btn btn--sm" id="cpA">Copiar link</button>${phone ? `<a class="btn btn--sm btn--red" target="_blank" rel="noopener" href="${waLink(phone, `Oi ${g.client.split(" ")[0]}! O seu álbum ficou pronto para revisão 📖 Folheie, comente e aprove aqui: ${link}`)}">Enviar no WhatsApp</a>` : ""}</div>`);
+      $("#cpA").onclick = () => O.copy(link, "Link do álbum copiado.");
+    };
+    $("#exportA", v).onclick = () => exportAlbum(a, g);
   }
+  /** Exporta as lâminas em JPEG 300 dpi com sangria, prontas para a gráfica, num ZIP. */
+  async function exportAlbum(a, g) {
+    const [wcm, hcm] = a.size.split("x").map(Number), DPI = 300, BLEED = 0.3; // 3 mm de sangria
+    const px = (cm) => Math.round((cm / 2.54) * DPI);
+    const W = px(wcm * 2 + BLEED * 2), H = px(hcm + BLEED * 2);
+    const d = dialog(`<p class="mono">Exportação para gráfica</p><h2>Preparando lâminas…</h2><p>${a.spreads.length} lâminas · ${wcm * 2}×${hcm} cm abertas · 300 dpi · sangria de 3 mm · ${W}×${H} px</p><div class="upbar"><i id="exBar"></i></div>`);
+    const files = [];
+    try {
+      for (let i = 0; i < a.spreads.length; i++) {
+        const sp = a.spreads[i], c = document.createElement("canvas"); c.width = W; c.height = H;
+        const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H);
+        const pad = Math.round(W * 0.03), gap = Math.round(W * 0.008), n = sp.slots.length;
+        const cols = { 1: [1], 2: [1, 1], 3: [2, 1, 1], 4: [1, 1, 1, 1] }[sp.layout] || [1];
+        const total = cols.reduce((p, q) => p + q, 0), inner = W - pad * 2 - gap * (n - 1);
+        let cx = pad;
+        for (let k = 0; k < n; k++) {
+          const cw = Math.round((inner * cols[k]) / total), pid = sp.slots[k];
+          if (pid) {
+            const ph = g.photos.find((p) => p.id === pid);
+            const orig = await O.getBlob("orig:" + pid);
+            const im = orig ? await new Promise((r, j) => { const m = new Image(); m.onload = () => r(m); m.onerror = j; m.src = URL.createObjectURL(orig); }) : await O.loadImage(ph);
+            const ch = H - pad * 2, s2 = Math.max(cw / im.naturalWidth, ch / im.naturalHeight);
+            const sw = cw / s2, sh = ch / s2, sx = (im.naturalWidth - sw) / 2, sy = (im.naturalHeight - sh) / 2;
+            x.drawImage(im, sx, sy, sw, sh, cx, pad, cw, ch);
+          }
+          cx += cw + gap;
+        }
+        const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.95));
+        files.push({ name: `lamina-${String(i + 1).padStart(2, "0")}.jpg`, data: blob });
+        $("#exBar").style.width = ((i + 1) / a.spreads.length) * 100 + "%";
+      }
+      files.push({ name: "LEIA-ME.txt", data: `Álbum: ${a.title}\nFormato: ${a.size} cm (lâmina aberta ${wcm * 2}x${hcm} cm)\nResolução: 300 dpi · ${W}x${H} px\nSangria: 3 mm em cada lado · cor sRGB · JPEG qualidade 95\nLâminas: ${a.spreads.length}\nGerado pelo Estúdio Offbeat em ${new Date().toLocaleString("pt-BR")}\n` });
+      Zip.save(await Zip.zip(files), `album-${a.id}-grafica.zip`);
+      closeDialog(); O.toast("ZIP para a gráfica gerado.", "ok");
+    } catch (e) { d.querySelector("h2").textContent = "Não foi possível exportar"; d.insertAdjacentHTML("beforeend", `<p class="mono" style="text-transform:none">Alguma foto não pôde ser lida (${esc(e.message || "erro")}).</p>`); }
+  }
+
   function flipbook(a, g) {
     let i = 0;
     const d = dialog(`<p class="mono" id="fbN"></p><div class="ab__stage" style="padding:16px"><div id="fb"></div></div><div class="acts"><button class="btn btn--sm btn--ghost" id="fbP">←</button><button class="btn btn--sm" id="fbN2">→</button></div>`, { wide: true });
@@ -748,40 +850,6 @@
     $("#fbP", d).onclick = () => { i = (i - 1 + a.spreads.length) % a.spreads.length; show(); };
     $("#fbN2", d).onclick = () => { i = (i + 1) % a.spreads.length; show(); };
     show();
-  }
-
-  /* ======================================================================
-     07 · SITE
-     ====================================================================== */
-  function siteBuilder(v) {
-    const s = S(), st = s.site;
-    const themes = [["noir", "Noir", "linear-gradient(135deg,#0f0e0c 60%,#e3412b)"], ["papel", "Papel", "linear-gradient(135deg,#efeae0 60%,#0f0e0c)"], ["galeria", "Galeria", "linear-gradient(135deg,#fff 50%,#d6cdbd)"]];
-    v.innerHTML = `<header class="vh"><div><p class="mono">${st.published ? "● publicado" : "rascunho"}</p><h1>Meu site</h1></div>
-      <div class="acts"><a class="btn btn--ghost" href="site.html" target="_blank" rel="noopener">Abrir ↗</a><button class="btn btn--red" id="pub">${st.published ? "Atualizar site" : "Publicar"}</button></div></header>
-      <div class="sb"><form class="card form" id="fs">
-        <div class="field"><span>Tema</span><div class="themes">${themes.map(([k, n, bg]) => `<button type="button" data-th="${k}" class="${st.theme === k ? "on" : ""}"><i style="background:${bg}"></i>${n}</button>`).join("")}</div></div>
-        <div class="field"><span>Frase principal</span><input name="headline" value="${esc(st.headline)}"></div>
-        <div class="field"><span>Sobre você</span><textarea name="about" rows="4">${esc(st.about)}</textarea></div>
-        <div class="field"><span>Cor de destaque</span><input name="accent" type="color" value="${st.accent}" style="height:44px;padding:4px"></div>
-        <div class="field"><span>Galerias no portfólio</span>${s.galleries.map((g) => `<label class="switch">${esc(g.title)}<input type="checkbox" name="gal" value="${g.id}" ${st.galleryIds.includes(g.id) ? "checked" : ""}></label>`).join("")}</div>
-        <div class="field"><span>Seções</span>${[["about", "Sobre"], ["testimonials", "Depoimentos"], ["contact", "Contato + WhatsApp"]].map(([k, n]) => `<label class="switch">${n}<input type="checkbox" name="sec_${k}" ${st.sections[k] ? "checked" : ""}></label>`).join("")}</div>
-      </form>
-      <div class="preview"><div class="preview__bar"><i></i><i></i><i></i><code>${esc(s.studio.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""))}.offbeat.foto</code>
-        <div class="preview__dev"><button class="on" data-w="100%">Desktop</button><button data-w="390px">Celular</button></div></div>
-        <iframe id="pv" src="site.html?preview=1" title="Prévia do site"></iframe></div></div>`;
-    const f = $("#fs", v), pv = $("#pv", v);
-    const commit = () => {
-      const x = new FormData(f);
-      O.update((s2) => Object.assign(s2.site, {
-        headline: x.get("headline"), about: x.get("about"), accent: x.get("accent"), galleryIds: x.getAll("gal"),
-        sections: { portfolio: true, about: !!x.get("sec_about"), testimonials: !!x.get("sec_testimonials"), contact: !!x.get("sec_contact") },
-      }));
-    };
-    let t; f.addEventListener("input", () => { clearTimeout(t); t = setTimeout(commit, 250); });
-    $$("[data-th]", v).forEach((b) => (b.onclick = () => { $$("[data-th]", v).forEach((x) => x.classList.toggle("on", x === b)); O.update((s2) => (s2.site.theme = b.dataset.th)); }));
-    viewHook = () => {}; // a prévia (iframe) escuta a mesma store e se atualiza sozinha
-    $$(".preview__dev button", v).forEach((b) => (b.onclick = () => { $$(".preview__dev button", v).forEach((x) => x.classList.toggle("on", x === b)); pv.style.width = b.dataset.w; }));
-    $("#pub", v).onclick = () => { commit(); O.update((s2) => { s2.site.published = true; O.log("Site publicado", "info"); }); O.toast("Site publicado!", "ok"); };
   }
 
   /* ======================================================================
@@ -820,7 +888,8 @@
     const s = S();
     return [
       ["+ Nova galeria", "criar", () => newGallery()], ["+ Novo cliente", "criar", () => newLead()], ["+ Nova cobrança Pix", "criar", () => newCharge()], ["+ Novo compromisso", "criar", () => newEvent(new Date())],
-      ["Visão geral", "ir", () => go("#/")], ["Galerias", "ir", () => go("#/galerias")], ["CRM", "ir", () => go("#/crm")], ["Agenda", "ir", () => go("#/agenda")], ["Financeiro", "ir", () => go("#/financeiro")], ["Álbuns", "ir", () => go("#/albuns")], ["Meu site", "ir", () => go("#/site")], ["Ajustes", "ir", () => go("#/ajustes")],
+      ["+ Nova tarefa", "criar", () => window.OBActions.task({})], ["+ Novo projeto", "criar", () => window.OBActions.project("")], ["+ Nova despesa", "criar", () => window.OBActions.expense()],
+      ["Visão geral", "ir", () => go("#/")], ["Projetos", "ir", () => go("#/projetos")], ["Tarefas", "ir", () => go("#/tarefas")], ["Propostas", "ir", () => go("#/propostas")], ["Realidade aumentada", "ir", () => go("#/ar")], ["Galerias", "ir", () => go("#/galerias")], ["CRM", "ir", () => go("#/crm")], ["Agenda", "ir", () => go("#/agenda")], ["Financeiro", "ir", () => go("#/financeiro")], ["Álbuns", "ir", () => go("#/albuns")], ["Meu site", "ir", () => go("#/site")], ["Ajustes", "ir", () => go("#/ajustes")],
       ...s.galleries.map((g) => [g.title, "galeria", () => go(`#/g/${g.id}`)]),
       ...s.leads.map((l) => [l.name, "cliente", () => { go("#/crm"); setTimeout(() => leadDrawer(l.id), 80); }]),
       ["Alternar tema claro/escuro", "ação", toggleTheme],
@@ -857,6 +926,13 @@
   try { app.dataset.theme = localStorage.getItem("ob-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch (e) {}
   $("#themeBtn").onclick = toggleTheme;
   $("#meName").textContent = S().studio.name;
+
+  /* ---------- módulos (assets/js/app-*.js) recebem os utilitários do painel ---------- */
+  const ctx = { O, $, $$, S, esc, money, main, dialog, closeDialog, drawer, closeDrawer, go, route, hydrate, imgTag, thumb, formData, waLink, newCharge, pixDialog, printHTML, docHead, KINDS, STAGES,
+    setViewHook: (fn) => { viewHook = fn; } };
+  Object.entries(window.OBViews || {}).forEach(([k, fn]) => (routes[k] = (v, a) => fn(v, a, ctx)));
+  window.OBActions = window.OBActions || {};
+  Object.entries(window.OBActionFactories || {}).forEach(([k, mk]) => (window.OBActions[k] = (...a) => mk(ctx)(...a)));
 
   /* ======================================================================
      ENTRADA — senha do dono do estúdio

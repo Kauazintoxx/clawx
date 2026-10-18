@@ -192,3 +192,18 @@
 .pay-card.paid { opacity: .7; }
 .chip { display: inline-block; padding: 3px 10px; border-radius: 99px; font: 500 .72rem var(--f-mono); text-transform: uppercase; background: rgba(201,138,27,.15); color: var(--warn); }
 .chip.ok { background: rgba(63,143,90,.15); color: var(--ok); }
+
+/* ---------- galeria compartilhada / vídeo / slideshow ---------- */
+.who { display: flex; flex-wrap: wrap; gap: 8px; flex-basis: 100%; }
+.who .btn { --fg: var(--paper); }
+.ph__vid { position: absolute; left: 8px; top: 8px; padding: 3px 8px; border-radius: 99px; background: var(--safelight); color: #fff; font: 500 10px var(--f-mono); pointer-events: none; }
+#lbVideo { max-width: 100%; max-height: calc(100svh - 96px); background: #000; box-shadow: 0 30px 90px rgba(0,0,0,.6); }
+.lb__show { display: none; }
+.lb--show { grid-template-columns: 1fr; background: #000; }
+.lb--show .lb__side, .lb--show .lb__nav, .lb--show .lb__x { display: none; }
+.lb--show .lb__stage { padding: 0; }
+.lb--show .lb__stage canvas { max-height: 100svh; box-shadow: none; animation: show-in 1.2s var(--e-out); }
+@keyframes show-in { from { opacity: 0; transform: scale(1.03); } }
+.lb--show .lb__show { display: flex; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); gap: 8px; opacity: 0; transition: opacity .4s; z-index: 3; }
+.lb--show:hover .lb__show, .lb--show:focus-within .lb__show { opacity: 1; }
+.lb__show button { padding: 9px 16px; border-radius: 99px; background: rgba(239,234,224,.14); color: var(--paper); backdrop-filter: blur(8px); }

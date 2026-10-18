@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Realidade aumentada — Offbeat</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0f0e0c" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<style>
+  html, body { height: 100%; }
+  body { background: var(--ink); color: var(--paper); overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  #stage video, #stage canvas { position: absolute; }
+  .ar-ui { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 24px; text-align: center; pointer-events: none; }
+  .ar-card { pointer-events: auto; width: min(420px, 100%); padding: 32px 26px; border-radius: 22px; background: rgba(15,14,12,.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 0 0 1px var(--line-inv); animation: up .7s var(--e-out); }
+  @keyframes up { from { opacity: 0; transform: translateY(20px); } }
+  .ar-card h1 { font: 400 2.6rem/1 var(--f-display); margin: 8px 0 12px; }
+  .ar-card p { color: rgba(239,234,224,.75); margin: 0 0 18px; }
+  .ar-card .mono { color: var(--muted); }
+  .ar-card .thumb { width: 120px; aspect-ratio: 4/5; object-fit: cover; border-radius: 6px; margin: 0 auto 16px; box-shadow: 0 20px 50px rgba(0,0,0,.5); transform: rotate(-3deg); }
+  .ar-card .btn { justify-content: center; width: 100%; margin-top: 8px; }
+  .ar-card .btn--ghost { --fg: var(--paper); }
+  .prog { height: 4px; border-radius: 4px; background: var(--ink-3); overflow: hidden; margin: 14px 0 6px; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--safelight); transition: width .3s; }
+  /* mira: aparece enquanto procura a foto */
+  .scan { position: fixed; inset: 0; z-index: 4; display: grid; place-items: center; pointer-events: none; }
+  .scan__box { position: relative; width: min(70vw, 340px); aspect-ratio: 4/5; }
+  .scan__box i { position: absolute; width: 34px; height: 34px; border: 3px solid #fff; }
+  .scan__box i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+  .scan__box i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+  .scan__box i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; }
+  .scan__box i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+  .scan__box::after { content: ""; position: absolute; left: 6%; right: 6%; height: 2px; background: var(--safelight); box-shadow: 0 0 18px var(--safelight); animation: sweep 2.2s var(--e-in-out) infinite; }
+  @keyframes sweep { 0%, 100% { top: 8%; } 50% { top: 92%; } }
+  .scan p { position: absolute; bottom: max(40px, env(safe-area-inset-bottom)); left: 0; right: 0; font: 500 .8rem var(--f-mono); letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 1px 6px rgba(0,0,0,.7); }
+  .scan.found .scan__box { opacity: 0; transition: opacity .4s; }
+  .bar { position: fixed; z-index: 6; top: max(14px, env(safe-area-inset-top)); left: 14px; right: 14px; display: flex; justify-content: space-between; gap: 8px; }
+  .bar button { padding: 9px 14px; border-radius: 99px; background: rgba(15,14,12,.7); color: var(--paper); font-size: .85rem; backdrop-filter: blur(8px); }
+  .fallback { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; background: #000; }
+  .fallback video { width: 100%; height: 100%; object-fit: contain; }
+  .fallback .x { position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px; width: 44px; height: 44px; border-radius: 50%; background: rgba(239,234,224,.15); color: #fff; font-size: 24px; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./assets/vendor/three/three.module.js",
+  "three/addons/": "./assets/vendor/three/addons/",
+  "mindar-image-three": "./assets/vendor/mindar/mindar-image-three.prod.js"
+} }
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div class="scan" id="scan" hidden><div class="scan__box"><i></i><i></i><i></i><i></i></div><p id="scanTxt">Aponte para a foto impressa</p></div>
+<div class="bar" id="bar" hidden><button id="mute">🔇 Ativar som</button><button id="stop">Fechar</button></div>
+<div class="ar-ui" id="ui"><div class="ar-card" id="card"><p class="mono">Carregando…</p></div></div>
+<div class="fallback" id="fb" hidden><video id="fbv" controls playsinline controlslist="nodownload" disablepictureinpicture></video><button class="x" id="fbx" aria-label="Fechar">×</button></div>
+
+<script src="assets/js/store.js"></script>
+<script type="module">
+  const O = window.Offbeat, $ = (s) => document.querySelector(s);
+  const id = decodeURIComponent(location.hash.slice(1));
+  const exp = O.get().ar.find((x) => x.id === id);
+  const card = $("#card");
+  let targetURL = "", videoURL = "", mind = null, video = null;
+
+  function fallback(msg) {
+    $("#fb").hidden = false; $("#fbv").src = videoURL; $("#fbv").play().catch(() => {});
+    if (msg) O.toast(msg);
+  }
+  $("#fbx").onclick = () => { $("#fbv").pause(); $("#fb").hidden = true; };
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  async function init() {
+    if (!exp) { card.innerHTML = `<p class="mono">Offbeat</p><h1>Experiência não encontrada.</h1><p>O link pode ter expirado. Fale com o seu fotógrafo.</p>`; return; }
+    const [tg, vd] = await Promise.all([O.getBlob("artgt:" + id), O.getBlob("arvid:" + id)]);
+    if (!tg || !vd) { card.innerHTML = `<p class="mono">${O.esc(O.get().studio.brand)}</p><h1>Arquivos indisponíveis.</h1><p>Esta experiência foi criada em outro aparelho. Com o servidor do estúdio ligado, ela abre em qualquer celular.</p>`; return; }
+    targetURL = URL.createObjectURL(tg); videoURL = URL.createObjectURL(vd);
+    O.update((s) => { const x = s.ar.find((y) => y.id === id); x.views = (x.views || 0) + 1; O.log(`Experiência “${x.title}” aberta`, "view"); });
+    const secure = window.isSecureContext && navigator.mediaDevices?.getUserMedia;
+    card.innerHTML = `<p class="mono">${O.esc(O.get().studio.brand)} · realidade aumentada</p><img class="thumb" src="${targetURL}" alt="A foto impressa">
+      <h1>${O.esc(exp.title)}</h1><p>Toque em começar, permita a câmera e aponte o celular para esta foto impressa.</p>
+      <div class="prog" id="prog" hidden><i></i></div><p class="mono" id="status" style="min-height:1em;margin:0"></p>
+      <button class="btn btn--red" id="go" ${secure ? "" : "disabled"}>Começar ▶</button>
+      <button class="btn btn--ghost" id="only">Só assistir ao vídeo</button>
+      ${secure ? "" : '<p class="mono" style="margin-top:12px;text-transform:none">A câmera só funciona em endereço seguro (https).</p>'}`;
+    $("#only").onclick = () => fallback();
+    $("#go").onclick = start;
+  }
+
+  /** Compila a foto como alvo (cache no aparelho) e liga a câmera. */
+  async function start() {
+    const status = $("#status"), prog = $("#prog");
+    $("#go").disabled = true; prog.hidden = false;
+    try {
+      let buffer = await O.getBlob("armind:" + id);
+      if (!buffer) {
+        status.textContent = "Preparando a foto…";
+        await import("./assets/vendor/mindar/mindar-image.prod.js");
+        const img = await new Promise((r, j) => { const m = new Image(); m.onload = () => r(m); m.onerror = j; m.src = targetURL; });
+        const compiler = new window.MINDAR.IMAGE.Compiler();
+        await compiler.compileImageTargets([img], (p) => (prog.firstElementChild.style.width = Math.round(p) + "%"));
+        buffer = new Blob([await compiler.exportData()]);
+        O.putBlob("armind:" + id, buffer).catch(() => {});
+      }
+      status.textContent = "Ligando a câmera…";
+      const { MindARThree } = await import("mindar-image-three");
+      const THREE = await import("three");
+      mind = new MindARThree({ container: $("#stage"), imageTargetSrc: URL.createObjectURL(buffer), uiLoading: "no", uiScanning: "no", uiError: "no", filterMinCF: 0.0001, filterBeta: 0.001 });
+      const { renderer, scene, camera } = mind;
+      video = document.createElement("video");
+      Object.assign(video, { src: videoURL, loop: true, playsInline: true, muted: true, crossOrigin: "anonymous" });
+      video.setAttribute("playsinline", ""); video.setAttribute("webkit-playsinline", "");
+      await new Promise((r) => { video.onloadedmetadata = r; video.load(); setTimeout(r, 4000); });
+      const tgImg = await new Promise((r) => { const m = new Image(); m.onload = () => r(m); m.src = targetURL; });
+      const texture = new THREE.VideoTexture(video);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      // o vídeo cobre a foto inteira (corta as sobras, como object-fit: cover)
+      const tgRatio = tgImg.naturalHeight / tgImg.naturalWidth, vRatio = (video.videoHeight || 9) / (video.videoWidth || 16);
+      if (vRatio > tgRatio) { texture.repeat.set(1, tgRatio / vRatio); texture.offset.set(0, (1 - tgRatio / vRatio) / 2); }
+      else { texture.repeat.set(vRatio / tgRatio, 1); texture.offset.set((1 - vRatio / tgRatio) / 2, 0); }
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, tgRatio), new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0 }));
+      const anchor = mind.addAnchor(0);
+      anchor.group.add(plane);
+      let fade = 0, visible = false;
+      anchor.onTargetFound = () => { visible = true; $("#scan").classList.add("found"); video.play().catch(() => {}); if (navigator.vibrate) navigator.vibrate(30); };
+      anchor.onTargetLost = () => { visible = false; $("#scan").classList.remove("found"); video.pause(); };
+      await mind.start();
+      $("#ui").hidden = true; $("#scan").hidden = false; $("#bar").hidden = false;
+      renderer.setAnimationLoop(() => { fade += ((visible ? 1 : 0) - fade) * 0.15; plane.material.opacity = fade; renderer.render(scene, camera); });
+    } catch (e) {
+      console.warn(e);
+      prog.hidden = true; status.textContent = "";
+      $("#go").disabled = false;
+      fallback("Não foi possível usar a câmera aqui — abrindo o vídeo.");
+    }
+  }
+
+  $("#mute").onclick = () => { if (!video) return; video.muted = !video.muted; $("#mute").textContent = video.muted ? "🔇 Ativar som" : "🔊 Som ligado"; video.play().catch(() => {}); };
+  $("#stop").onclick = () => { try { mind?.stop(); mind?.renderer.setAnimationLoop(null); } catch (e) {} video?.pause(); $("#scan").hidden = true; $("#bar").hidden = true; $("#ui").hidden = false; $("#go").disabled = false; $("#status").textContent = ""; $("#prog").hidden = true; };
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Página</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/public.css" />
+</head>
+<body class="pf" id="pf">
+<header class="pf-top"><a class="serif" id="pfName" href="site.html">Lázaro</a><nav id="pfNav"></nav></header>
+<main id="pg"></main>
+<footer class="pf-foot"><span class="mono" id="pfFoot"></span><a href="site.html" class="mono">← Voltar ao site</a></footer>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/motion.js"></script>
+<script src="assets/js/blocks.js"></script>
+<script>
+(function () {
+  const O = Offbeat, B = Blocks, $ = (s) => document.querySelector(s);
+  B.css();
+  const preview = new URLSearchParams(location.search).has("preview");
+  function render() {
+    const s = O.get(), st = s.site, me = s.studio, hash = decodeURIComponent(location.hash.slice(1));
+    const pf = $("#pf"), main = $("#pg");
+    pf.dataset.theme = st.theme; pf.style.setProperty("--acc", st.accent);
+    $("#pfName").textContent = me.name;
+    $("#pfFoot").textContent = `© ${new Date().getFullYear()} ${me.name} · ${me.brand}`;
+    const pages = s.pages.filter((p) => p.published || preview), posts = s.posts.filter((p) => p.published || preview).sort((a, b) => b.date - a.date);
+    $("#pfNav").innerHTML = [["site.html", "Início"], st.blog && posts.length && ["page.html#blog", "Diário"], ...s.pages.filter((p) => p.published).map((p) => [O.pageLink(p), p.title])]
+      .filter(Boolean).map(([h, n]) => `<a href="${O.esc(h)}">${O.esc(n)}</a>`).join("");
+    if (hash === "blog") {
+      B.seo({ title: `Diário — ${me.name}`, description: `Histórias, bastidores e dicas de ${me.name}, fotógrafo.` });
+      main.innerHTML = `<section class="pf-sec" style="border:0"><h2>Diário</h2><div class="pf-posts">${posts.map((p) => `<a class="pf-post" href="${O.esc(O.postLink(p))}"><div class="cv"><img data-bg="${O.esc(p.cover?.gid || "")}" data-bp="${O.esc(p.cover?.pid || "")}" data-bw="800" alt=""></div><span class="mono">${O.date(p.date, { day: "2-digit", month: "long", year: "numeric" })}</span><h3>${O.esc(p.title)}</h3><p>${O.esc(p.excerpt)}</p></a>`).join("")}</div></section>`;
+    } else if (hash.startsWith("blog/")) {
+      const p = posts.find((x) => x.slug === hash.slice(5));
+      if (!p) return notFound(main);
+      B.seo({ title: p.seo?.title || `${p.title} — ${me.name}`, description: p.seo?.description || p.excerpt, type: "article",
+        jsonld: { "@context": "https://schema.org", "@type": "BlogPosting", headline: p.title, datePublished: new Date(p.date).toISOString(), author: { "@type": "Person", name: me.name }, description: p.excerpt } });
+      main.innerHTML = `<article class="pf-article"><span class="mono">${O.date(p.date, { day: "2-digit", month: "long", year: "numeric" })} · ${O.esc(me.name)}</span><h1>${O.esc(p.title)}</h1>
+        ${p.cover?.gid ? `<div class="cv"><img data-bg="${O.esc(p.cover.gid)}" data-bp="${O.esc(p.cover.pid || "")}" data-bw="1600" alt=""></div>` : ""}<div class="bk-prose">${B.md(p.body)}</div></article>
+        ${B.render({ type: "cta", title: "Gostou?", text: "Vamos conversar sobre o seu dia.", button: "whatsapp" }, s)}`;
+    } else {
+      const pg = pages.find((x) => x.slug === hash);
+      if (!pg) return notFound(main);
+      B.seo({ title: pg.seo?.title || `${pg.title} — ${me.name}`, description: pg.seo?.description || "", jsonld: B.studioLD(s) });
+      main.innerHTML = pg.blocks.map((b) => B.render(b, s)).join("");
+      B.mountForms(main, pg.kind === "landing" ? `Landing: ${pg.title}` : `Página: ${pg.title}`);
+    }
+    B.hydrate(main);
+  }
+  function notFound(main) { B.seo({ title: "Página não encontrada" }); main.innerHTML = '<section class="pf-sec" style="border:0"><h2>Página não encontrada.</h2><p><a class="bk-btn" href="site.html">Voltar ao site</a></p></section>'; }
+  render();
+  addEventListener("hashchange", () => { render(); scrollTo(0, 0); });
+  O.onChange(render);
+  document.addEventListener("contextmenu", (e) => { if (e.target.tagName === "IMG") e.preventDefault(); });
+})();
+</script>
+</body>
+</html>

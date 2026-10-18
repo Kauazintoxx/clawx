@@ -1,0 +1,52 @@
+/* ==========================================================================
+   OFFBEAT — site público (temas) · usado por site.html e page.html
+   ========================================================================== */
+.pf { --bg: var(--ink); --fg: var(--paper); --sub: rgba(239,234,224,.7); --bd: var(--line-inv); --acc: var(--safelight); background: var(--bg); color: var(--fg); transition: background .6s, color .6s; min-height: 100svh; }
+.pf[data-theme="papel"] { --bg: var(--paper); --fg: var(--ink); --sub: #5a554d; --bd: var(--line); }
+.pf[data-theme="galeria"] { --bg: #fff; --fg: #111; --sub: #666; --bd: #eee; }
+.pf .mono { color: var(--sub); }
+.pf-top { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px var(--gutter); background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.pf-top .serif { font-size: 1.6rem; text-decoration: none; }
+.pf-top nav { display: flex; gap: 22px; font-size: .9rem; flex-wrap: wrap; }
+.pf-top nav a { text-decoration: none; color: var(--sub); transition: color .3s; }
+.pf-top nav a:hover, .pf-top nav a.on { color: var(--fg); }
+@media (max-width: 700px) { .pf-top nav { gap: 14px; font-size: .82rem; } }
+.pf-hero { padding: 10vh var(--gutter) 8vh; }
+.pf-hero h1 { font: 400 clamp(3rem, 11vw, 10rem)/.9 var(--f-display); letter-spacing: -.03em; margin: .1em 0; max-width: 12ch; }
+.pf-hero h1 em { color: var(--acc); }
+.pf-sec { padding: 10vh var(--gutter); border-top: 1px solid var(--bd); }
+.pf-sec > h2 { font: 400 clamp(2rem, 5vw, 3.6rem)/1 var(--f-display); margin: 0 0 24px; }
+.pf-set { margin-bottom: 56px; }
+.pf-set header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; padding: 0 0 14px; border-bottom: 1px solid var(--bd); margin-bottom: 14px; }
+.pf-set header h3 { font: 400 1.8rem var(--f-display); margin: 0; }
+.pf-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.pf-grid figure { margin: 0; overflow: hidden; border-radius: 2px; background: rgba(128,128,128,.12); grid-column: span 2; }
+.pf-grid figure:nth-child(6n+1) { grid-column: span 3; grid-row: span 2; }
+.pf-grid figure:nth-child(6n+2), .pf-grid figure:nth-child(6n+3) { grid-column: span 3; }
+.pf-grid img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 3/2; transition: transform 1.2s var(--e-out); -webkit-user-drag: none; }
+.pf-grid figure:nth-child(6n+1) img { aspect-ratio: auto; }
+.pf-grid figure:hover img { transform: scale(1.04); }
+@media (max-width: 700px) { .pf-grid { grid-template-columns: 1fr 1fr; } .pf-grid figure { grid-column: auto !important; grid-row: auto !important; } }
+.pf-about { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6vw; }
+.pf-about p { font: 400 clamp(1.4rem, 2.6vw, 2.2rem)/1.25 var(--f-display); margin: 0; }
+@media (max-width: 800px) { .pf-about { grid-template-columns: 1fr; } }
+.pf-test .q { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.pf-test blockquote { margin: 0; font: italic 400 1.4rem/1.3 var(--f-display); }
+.pf-test cite { display: block; margin-top: 10px; font: normal 500 .72rem var(--f-mono); color: var(--sub); text-transform: uppercase; }
+@media (max-width: 800px) { .pf-test .q { grid-template-columns: 1fr; } }
+.pf-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; }
+.pf-post { text-decoration: none; display: grid; gap: 10px; }
+.pf-post .cv { aspect-ratio: 3/2; overflow: hidden; border-radius: 2px; background: rgba(128,128,128,.12); }
+.pf-post img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--e-out); }
+.pf-post:hover img { transform: scale(1.04); }
+.pf-post h3 { font: 400 1.7rem/1.1 var(--f-display); margin: 0; }
+.pf-post p { margin: 0; color: var(--sub); }
+.pf-contact { display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; }
+@media (max-width: 800px) { .pf-contact { grid-template-columns: 1fr; } }
+.pf-foot { padding: 24px var(--gutter); border-top: 1px solid var(--bd); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.pf-foot a { color: var(--sub); text-decoration: none; }
+.pf-article { max-width: 760px; margin: 0 auto; padding: 8vh var(--gutter); }
+.pf-article h1 { font: 400 clamp(2.6rem, 7vw, 5.4rem)/.95 var(--f-display); letter-spacing: -.02em; margin: .2em 0 .4em; }
+.pf-article .cv { margin: 0 calc(-1 * var(--gutter)) 40px; aspect-ratio: 16/9; overflow: hidden; }
+.pf-article .cv img { width: 100%; height: 100%; object-fit: cover; }
+.pf-article .bk-prose { max-width: none; }

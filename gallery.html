@@ -68,6 +68,8 @@
         <input type="search" inputmode="numeric" id="searchInput" placeholder="ex: 127" />
       </label>
       <div class="toolbar__right">
+        <button class="mono tool" id="dlAllBtn" hidden title="Baixar tudo o que foi liberado, em ZIP">↓ Baixar ZIP</button>
+        <button class="mono tool" id="showBtn" title="Apresentação em tela cheia">▶ Slideshow</button>
         <button class="mono tool" id="compareBtn" title="Compare duas fotos lado a lado">Comparar</button>
         <button class="mono tool" id="sizeBtn" title="Tamanho da grade">Grade: M</button>
       </div>
@@ -103,7 +105,8 @@
 
 <!-- Lightbox -->
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Foto ampliada" hidden>
-  <div class="lb__stage" id="lbStage"><canvas class="prot" id="lbCanvas"></canvas><canvas class="prot" id="lbCanvas2" hidden></canvas></div>
+  <div class="lb__stage" id="lbStage"><canvas class="prot" id="lbCanvas"></canvas><canvas class="prot" id="lbCanvas2" hidden></canvas><video id="lbVideo" hidden controls playsinline controlslist="nodownload noplaybackrate" disablepictureinpicture></video></div>
+  <div class="lb__show"><button id="showPause">❚❚ Pausar</button><button id="showStop">Sair do slideshow</button></div>
   <button class="lb__x" id="lbClose" aria-label="Fechar">×</button>
   <button class="lb__nav lb__prev" id="lbPrev" aria-label="Anterior">←</button>
   <button class="lb__nav lb__next" id="lbNext" aria-label="Próxima">→</button>
@@ -140,6 +143,7 @@
 <script src="assets/js/pix.js"></script>
 <script src="assets/js/motion.js"></script>
 <script src="assets/js/protect.js"></script>
+<script src="assets/js/zip.js"></script>
 <script src="assets/js/gallery.js"></script>
 </body>
 </html>

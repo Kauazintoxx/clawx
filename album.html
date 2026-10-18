@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Álbum — Offbeat</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<style>
+  body { background: radial-gradient(120% 90% at 50% 10%, #2a2723, var(--ink) 70%); color: var(--paper); min-height: 100svh; -webkit-user-select: none; user-select: none; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px var(--gutter); }
+  .top .serif { font-size: 1.6rem; } .top .serif i { color: var(--safelight); font-style: normal; }
+  .top .mono { color: var(--muted); }
+  .head { text-align: center; padding: 2vh var(--gutter) 0; }
+  .head h1 { font: 400 clamp(2.2rem, 6vw, 4.4rem)/1 var(--f-display); margin: 4px 0; letter-spacing: -.02em; }
+  .head .mono { color: var(--muted); }
+  /* livro */
+  .scene { perspective: 2200px; padding: 4vh var(--gutter) 2vh; display: grid; place-items: center; touch-action: pan-y; }
+  .book { position: relative; width: min(92vw, 1100px); aspect-ratio: 2 / 1; transform-style: preserve-3d; transition: transform .9s var(--e-out); cursor: grab; }
+  .book.d3 { transform: rotateX(var(--rx, 22deg)) rotateY(var(--ry, -14deg)) scale(.86); }
+  .book::before { content: ""; position: absolute; inset: 2% -1.2% -4% -1.2%; background: #1a1714; border-radius: 6px; transform: translateZ(-14px); box-shadow: 0 50px 90px rgba(0,0,0,.6); }
+  .book.d3::after { content: ""; position: absolute; left: 0; right: 0; bottom: -12px; height: 12px; background: repeating-linear-gradient(90deg, #f4efe6 0 2px, #ddd5c7 2px 3px); transform: rotateX(-90deg); transform-origin: top; }
+  .half { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; background: #fff; }
+  .half.l { left: 0; box-shadow: inset -24px 0 30px -18px rgba(0,0,0,.35); }
+  .half.r { left: 50%; box-shadow: inset 24px 0 30px -18px rgba(0,0,0,.35); }
+  .half > .sp, .face > .sp { position: absolute; top: 0; height: 100%; width: 200%; }
+  .half.l > .sp, .face.back > .sp { left: 0; }
+  .half.r > .sp, .face.front > .sp { left: -100%; }
+  .sp { display: grid; gap: 1%; padding: 3.2%; background: #fff; }
+  .sp.L1 { grid-template-columns: 1fr; } .sp.L2 { grid-template-columns: 1fr 1fr; gap: 6.4%; } .sp.L3 { grid-template-columns: 2fr 1fr 1fr; } .sp.L4 { grid-template-columns: repeat(4, 1fr); }
+  .sp div { background: #ece7de; overflow: hidden; } .sp img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+  .leaf { position: absolute; left: 50%; top: 0; width: 50%; height: 100%; transform-origin: left center; transform-style: preserve-3d; transition: transform .9s var(--e-in-out); z-index: 3; }
+  .leaf.back-dir { left: 0; transform-origin: right center; }
+  .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #fff; }
+  .face.back { transform: rotateY(180deg); }
+  .leaf .face::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.18), transparent 30%); pointer-events: none; }
+  .ctrls { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 8px var(--gutter) 18px; flex-wrap: wrap; }
+  .ctrls button { padding: 10px 16px; border-radius: 99px; background: rgba(239,234,224,.08); color: var(--paper); }
+  .ctrls button:hover { background: rgba(239,234,224,.16); } .ctrls button.on { background: var(--paper); color: var(--ink); }
+  .ctrls .mono { color: var(--muted); min-width: 110px; text-align: center; }
+  .review { max-width: 760px; margin: 0 auto; padding: 0 var(--gutter) 80px; display: grid; gap: 14px; }
+  .review textarea, .review input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-inv); background: rgba(239,234,224,.05); color: var(--paper); -webkit-user-select: text; user-select: text; }
+  .review .mono { color: var(--muted); }
+  .review .acts { display: flex; flex-wrap: wrap; gap: 10px; }
+  .review .btn--ghost { --fg: var(--paper); }
+  .done { text-align: center; padding: 24px; border-radius: 18px; background: rgba(239,234,224,.06); }
+  .done h2 { font: 400 2.2rem/1 var(--f-display); margin: 0 0 6px; }
+  .thumbs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; padding: 0 var(--gutter) 16px; }
+  .thumbs button { width: 54px; height: 27px; border-radius: 3px; background: rgba(239,234,224,.12); font: 500 .6rem var(--f-mono); color: var(--muted); position: relative; }
+  .thumbs button.on { background: var(--paper); color: var(--ink); } .thumbs button.c::after { content: ""; position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--safelight); }
+</style>
+</head>
+<body>
+<header class="top"><span class="serif" id="brand">Offbeat<i>.</i></span><span class="mono" id="who"></span></header>
+<section class="head"><p class="mono" id="kick"></p><h1 id="ttl">Álbum</h1></section>
+<div class="scene" id="scene"><div class="book" id="book"><div class="half l" id="hl"></div><div class="half r" id="hr"></div></div></div>
+<div class="ctrls"><button id="prev" aria-label="Lâmina anterior">←</button><span class="mono" id="pg">—</span><button id="next" aria-label="Próxima lâmina">→</button><button id="d3">Ver em 3D</button></div>
+<div class="thumbs" id="thumbs"></div>
+<section class="review" id="review"></section>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  const O = Offbeat, $ = (s) => document.querySelector(s), id = location.hash.slice(1);
+  let i = 0, busy = false;
+  const st = () => O.get(), alb = () => st().albums.find((a) => a.id === id), gal = () => st().galleries.find((g) => g.id === alb()?.galleryId);
+  const url = new Map();
+  async function src(pid) {
+    if (!pid) return "";
+    if (url.has(pid)) return url.get(pid);
+    const p = gal()?.photos.find((x) => x.id === pid); if (!p) return "";
+    const u = p.src ? p.src.replace(/\/(\d+)\/(\d+)$/, (m, W, H) => `/1200/${Math.round((1200 * H) / W)}`) : await O.getBlob(p.id).then((b) => (b ? URL.createObjectURL(b) : ""));
+    url.set(pid, u); return u;
+  }
+  function spread(sp) {
+    const el = document.createElement("div"); el.className = "sp L" + sp.layout;
+    sp.slots.forEach((pid) => { const d = document.createElement("div"); if (pid) { const im = new Image(); src(pid).then((u) => (im.src = u)); d.appendChild(im); } el.appendChild(d); });
+    return el;
+  }
+  function paint() {
+    const a = alb(); if (!a) return;
+    $("#hl").replaceChildren(spread(a.spreads[i])); $("#hr").replaceChildren(spread(a.spreads[i]));
+    $("#pg").textContent = `Lâmina ${i + 1} de ${a.spreads.length}`;
+    $("#prev").disabled = i === 0; $("#next").disabled = i === a.spreads.length - 1;
+    $("#thumbs").innerHTML = a.spreads.map((_, k) => `<button data-k="${k}" class="${k === i ? "on" : ""} ${a.comments?.[k] ? "c" : ""}">${k + 1}</button>`).join("");
+    document.querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => go(+b.dataset.k)));
+    const ta = $("#cmt"); if (ta) { ta.value = a.comments?.[i] || ""; $("#cmtL").textContent = `Comentário na lâmina ${i + 1}`; }
+  }
+  /** Virada de página: uma folha gira sobre a lombada, frente = página atual, verso = a próxima. */
+  function go(n) {
+    const a = alb(); if (busy || n === i || n < 0 || n >= a.spreads.length) return;
+    const fwd = n > i, leaf = document.createElement("div");
+    leaf.className = "leaf" + (fwd ? "" : " back-dir");
+    const front = document.createElement("div"), back = document.createElement("div");
+    front.className = "face " + (fwd ? "front" : "back"); back.className = "face " + (fwd ? "back" : "front");
+    if (!fwd) { front.style.transform = "none"; back.style.transform = "rotateY(-180deg)"; }
+    // frente mostra a metade que sai; verso mostra a metade que chega
+    const out = spread(a.spreads[i]), inn = spread(a.spreads[n]);
+    if (fwd) { front.appendChild(out); back.appendChild(inn); }
+    else { const fo = out; fo.style.left = "0"; front.appendChild(fo); const bi = inn; bi.style.left = "-100%"; back.appendChild(bi); }
+    leaf.append(front, back);
+    $("#book").appendChild(leaf);
+    // a metade "de baixo" já mostra o destino
+    (fwd ? $("#hr") : $("#hl")).replaceChildren(spread(a.spreads[n]));
+    busy = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => (leaf.style.transform = `rotateY(${fwd ? -180 : 180}deg)`)));
+    setTimeout(() => { leaf.remove(); i = n; busy = false; paint(); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 920);
+  }
+  $("#prev").onclick = () => go(i - 1); $("#next").onclick = () => go(i + 1);
+  addEventListener("keydown", (e) => { if (e.target.matches("textarea,input")) return; if (e.key === "ArrowRight") go(i + 1); if (e.key === "ArrowLeft") go(i - 1); });
+  let sx = null; $("#scene").addEventListener("pointerdown", (e) => (sx = e.clientX));
+  $("#scene").addEventListener("pointerup", (e) => { if (sx !== null && Math.abs(e.clientX - sx) > 50 && !$("#book").classList.contains("d3")) go(e.clientX < sx ? i + 1 : i - 1); sx = null; });
+  // modo 3D: o livro inclina; arraste para girar
+  const book = $("#book");
+  function set3d(on) { book.classList.toggle("d3", on); $("#d3").classList.toggle("on", on); $("#d3").textContent = on ? "Ver plano" : "Ver em 3D"; }
+  $("#d3").onclick = () => set3d(!book.classList.contains("d3"));
+  let drag = null;
+  book.addEventListener("pointerdown", (e) => { if (!book.classList.contains("d3")) return; drag = { x: e.clientX, y: e.clientY, rx: parseFloat(getComputedStyle(book).getPropertyValue("--rx")) || 22, ry: parseFloat(getComputedStyle(book).getPropertyValue("--ry")) || -14 }; book.setPointerCapture(e.pointerId); book.style.transition = "none"; });
+  book.addEventListener("pointermove", (e) => { if (!drag) return; book.style.setProperty("--ry", Math.max(-60, Math.min(60, drag.ry + (e.clientX - drag.x) / 4)) + "deg"); book.style.setProperty("--rx", Math.max(0, Math.min(60, drag.rx - (e.clientY - drag.y) / 4)) + "deg"); });
+  book.addEventListener("pointerup", () => { drag = null; book.style.transition = ""; });
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  function review() {
+    const a = alb(), s = st(), box = $("#review");
+    if (a.status === "aprovado") { box.innerHTML = `<div class="done"><h2>Álbum aprovado ✓</h2><p>Aprovado por ${O.esc(a.approval?.name || "")} em ${O.date(a.approval?.at, { day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" })}. Agora ele vai para a gráfica.</p></div>`; return; }
+    box.innerHTML = `${a.status === "ajustes" ? `<div class="done"><h2>Ajustes enviados</h2><p>${O.esc(s.studio.name)} vai revisar e te mandar uma nova versão.</p></div>` : ""}
+      <label><span class="mono" id="cmtL">Comentário na lâmina 1</span><textarea id="cmt" rows="2" placeholder="Ex.: trocar a foto da direita por uma com a vovó"></textarea></label>
+      <label><span class="mono">Seu nome</span><input id="nm" value="${O.esc(gal()?.client || "")}"></label>
+      <div class="acts"><button class="btn btn--red" id="ap">Aprovar álbum</button><button class="btn btn--ghost" id="aj">Pedir ajustes</button></div>
+      <p class="mono" style="text-transform:none">Use as setas, arraste para os lados ou toque nos números para navegar. Comente em quantas lâminas quiser antes de enviar.</p>`;
+    let tm;
+    $("#cmt").oninput = (e) => { clearTimeout(tm); tm = setTimeout(() => O.update((s2) => { const A = s2.albums.find((x) => x.id === id); A.comments = A.comments || {}; A.comments[i] = e.target.value; }), 400); };
+    const decide = (ok) => {
+      const name = $("#nm").value.trim(); if (!name) { $("#nm").focus(); return O.toast("Informe seu nome."); }
+      const n = Object.values(alb().comments || {}).filter(Boolean).length;
+      if (!ok && !n) return O.toast("Escreva pelo menos um comentário com o ajuste.");
+      O.update((s2) => { const A = s2.albums.find((x) => x.id === id); A.status = ok ? "aprovado" : "ajustes"; A.approval = { name, at: Date.now(), note: ok ? "" : `${n} comentário(s)` }; O.log(ok ? `${name} aprovou o álbum “${A.title}”` : `${name} pediu ajustes no álbum “${A.title}” (${n} comentários)`, ok ? "pay" : "warn"); });
+      O.toast(ok ? "Álbum aprovado!" : "Ajustes enviados.", "ok"); review();
+    };
+    $("#ap").onclick = () => decide(true); $("#aj").onclick = () => decide(false);
+    paint();
+  }
+
+  const a = alb();
+  if (!a) { $("#ttl").textContent = "Álbum não encontrado."; $("#scene").hidden = true; return; }
+  const s = st();
+  document.title = `${a.title} — ${s.studio.brand}`;
+  $("#brand").innerHTML = `${O.esc(s.studio.brand)}<i>.</i>`; $("#who").textContent = s.studio.name;
+  $("#kick").textContent = `${gal()?.title || ""} · ${a.size} cm · ${a.spreads.length} lâminas`; $("#ttl").textContent = a.title;
+  if (!sessionStorage.getItem("ob-av-" + id)) { sessionStorage.setItem("ob-av-" + id, 1); if (a.status !== "rascunho") O.update(() => O.log(`Cliente abriu o álbum “${a.title}”`, "view")); }
+  if (new URLSearchParams(location.search).get("modo") === "3d") set3d(true);
+  paint(); review();
+})();
+</script>
+</body>
+</html>

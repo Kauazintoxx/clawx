@@ -9,111 +9,56 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/css/base.css" />
-<style>
-  .pf { --bg: var(--ink); --fg: var(--paper); --sub: rgba(239,234,224,.7); --bd: var(--line-inv); --acc: var(--safelight); background: var(--bg); color: var(--fg); transition: background .6s, color .6s; }
-  .pf[data-theme="papel"] { --bg: var(--paper); --fg: var(--ink); --sub: #5a554d; --bd: var(--line); }
-  .pf[data-theme="galeria"] { --bg: #fff; --fg: #111; --sub: #666; --bd: #eee; }
-  .pf .mono { color: var(--sub); }
-  .pf header { display: flex; justify-content: space-between; align-items: center; padding: 20px var(--gutter); }
-  .pf header .serif { font-size: 1.6rem; }
-  .pf header nav { display: flex; gap: 22px; font-size: .9rem; }
-  .pf header nav a { text-decoration: none; color: var(--sub); }
-  .pf header nav a:hover { color: var(--fg); }
-  .pf-hero { padding: 10vh var(--gutter) 8vh; }
-  .pf-hero h1 { font: 400 clamp(3rem, 11vw, 10rem)/.9 var(--f-display); letter-spacing: -.03em; margin: .1em 0; max-width: 12ch; }
-  .pf-hero h1 em { color: var(--acc); }
-  .pf-work { padding: 0 var(--gutter) 10vh; }
-  .pf-work h2, .pf-about h2, .pf-contact h2, .pf-test h2 { font: 400 clamp(2rem, 5vw, 3.6rem)/1 var(--f-display); margin: 0 0 24px; }
-  .pf-set { margin-bottom: 56px; }
-  .pf-set header { padding: 0 0 14px; border-bottom: 1px solid var(--bd); margin-bottom: 14px; }
-  .pf-set header h3 { font: 400 1.8rem var(--f-display); margin: 0; }
-  .pf-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-  .pf-grid figure { margin: 0; overflow: hidden; border-radius: 2px; background: rgba(128,128,128,.12); }
-  .pf-grid figure:nth-child(6n+1) { grid-column: span 3; grid-row: span 2; }
-  .pf-grid figure:nth-child(6n+4) { grid-column: span 2; }
-  .pf-grid figure:nth-child(6n+5) { grid-column: span 2; }
-  .pf-grid figure:nth-child(6n+6) { grid-column: span 2; }
-  .pf-grid figure:nth-child(6n+2), .pf-grid figure:nth-child(6n+3) { grid-column: span 3; }
-  .pf-grid img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 3/2; transition: transform 1.2s var(--e-out); -webkit-user-drag: none; }
-  .pf-grid figure:nth-child(6n+1) img { aspect-ratio: auto; }
-  .pf-grid figure:hover img { transform: scale(1.04); }
-  @media (max-width: 700px) { .pf-grid { grid-template-columns: 1fr 1fr; } .pf-grid figure { grid-column: auto !important; grid-row: auto !important; } .pf header nav { display: none; } }
-  .pf-about { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6vw; padding: 10vh var(--gutter); border-top: 1px solid var(--bd); }
-  .pf-about p { font: 400 clamp(1.4rem, 2.6vw, 2.2rem)/1.25 var(--f-display); margin: 0; }
-  @media (max-width: 800px) { .pf-about { grid-template-columns: 1fr; } }
-  .pf-test { padding: 10vh var(--gutter); border-top: 1px solid var(--bd); }
-  .pf-test .q { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  .pf-test blockquote { margin: 0; font: italic 400 1.4rem/1.3 var(--f-display); }
-  .pf-test cite { display: block; margin-top: 10px; font: normal 500 .72rem var(--f-mono); color: var(--sub); text-transform: uppercase; }
-  @media (max-width: 800px) { .pf-test .q { grid-template-columns: 1fr; } }
-  .pf-contact { padding: 10vh var(--gutter); border-top: 1px solid var(--bd); display: grid; grid-template-columns: 1fr 1fr; gap: 6vw; }
-  @media (max-width: 800px) { .pf-contact { grid-template-columns: 1fr; } }
-  .pf-contact form { display: grid; gap: 12px; }
-  .pf-contact input, .pf-contact select, .pf-contact textarea { width: 100%; padding: 14px 0; border: 0; border-bottom: 1px solid var(--bd); background: transparent; color: var(--fg); font-size: 1rem; }
-  .pf-contact input:focus, .pf-contact textarea:focus { outline: none; border-color: var(--acc); }
-  .pf-contact .btn { justify-self: start; --bg: var(--fg); --fg: var(--bg); margin-top: 10px; }
-  .pf footer { padding: 24px var(--gutter); border-top: 1px solid var(--bd); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .pf footer a { color: var(--sub); text-decoration: none; }
-</style>
+<link rel="stylesheet" href="assets/css/public.css" />
 </head>
 <body class="pf" id="pf">
-<header><span class="serif" id="pfName">Lázaro</span><nav><a href="#trabalhos">Trabalhos</a><a href="#sobre">Sobre</a><a href="#contato">Contato</a></nav></header>
+<header class="pf-top"><a class="serif" id="pfName" href="site.html">Lázaro</a><nav id="pfNav"></nav></header>
 <section class="pf-hero"><p class="mono" id="pfKicker">Fotógrafo · São Paulo</p><h1 id="pfHead"></h1></section>
-<section class="pf-work" id="trabalhos"><h2>Trabalhos</h2><div id="pfSets"></div></section>
-<section class="pf-about" id="sobre"><h2>Sobre</h2><p id="pfAbout"></p></section>
-<section class="pf-test" id="depo"><h2>Quem viveu</h2><div class="q">
-  <blockquote>“Ele pegou o momento em que meu pai segurou o choro. Eu nem vi acontecer.”<cite>Noiva · casamento 2026</cite></blockquote>
-  <blockquote>“Escolher as fotos foi a parte mais gostosa — e ainda veio com o contrato tudo num link.”<cite>Ensaio gestante</cite></blockquote>
-  <blockquote>“Profissional, leve, rápido. As fotos chegaram antes do prometido.”<cite>Evento corporativo</cite></blockquote>
-</div></section>
-<section class="pf-contact" id="contato"><div><h2>Vamos conversar?</h2><p class="mono" style="text-transform:none" id="pfContactTxt"></p><a class="btn btn--red" id="pfWa" target="_blank" rel="noopener">Chamar no WhatsApp</a></div>
-  <form id="pfForm"><input name="name" placeholder="Seu nome" required><input name="email" type="email" placeholder="E-mail" required><input name="phone" placeholder="WhatsApp">
-    <select name="type"><option>Casamento</option><option>Ensaio</option><option>Gestante</option><option>15 anos</option><option>Corporativo</option><option>Evento</option></select>
-    <input name="date" type="date" aria-label="Data do evento"><textarea name="notes" rows="3" placeholder="Conte um pouco sobre o seu dia"></textarea>
-    <button class="btn">Pedir orçamento →</button></form></section>
-<footer><span class="mono" id="pfFoot"></span><a href="index.html" class="mono">Estúdio Offbeat</a></footer>
+<section class="pf-sec" id="trabalhos"><h2>Trabalhos</h2><div id="pfSets"></div></section>
+<section class="pf-sec pf-about" id="sobre"><h2>Sobre</h2><p id="pfAbout"></p></section>
+<section class="pf-sec pf-test" id="depo"><h2>Quem viveu</h2><div class="q" id="pfTest"></div></section>
+<section class="pf-sec" id="blog"><h2>Diário</h2><div class="pf-posts" id="pfPosts"></div></section>
+<section class="pf-sec pf-contact" id="contato"><div><h2>Vamos conversar?</h2><p class="mono" style="text-transform:none" id="pfContactTxt"></p><p><a class="btn btn--red" id="pfWa" target="_blank" rel="noopener">Chamar no WhatsApp</a></p></div>
+  <div class="bk-form" id="pfForm"></div></section>
+<footer class="pf-foot"><span class="mono" id="pfFoot"></span><a href="index.html" class="mono">Estúdio Offbeat</a></footer>
 <script src="assets/js/store.js"></script>
 <script src="assets/js/motion.js"></script>
+<script src="assets/js/blocks.js"></script>
 <script>
 (function () {
-  const O = Offbeat, $ = (s) => document.querySelector(s);
+  const O = Offbeat, B = Blocks, $ = (s) => document.querySelector(s);
+  B.css();
+  $("#pfForm").innerHTML = B.render({ type: "form", title: "" }).replace(/<h2><\/h2>/, "");
+  B.mountForms($("#pfForm"), "Site");
   function render() {
     const s = O.get(), st = s.site, me = s.studio;
     const pf = $("#pf");
     pf.dataset.theme = st.theme; pf.style.setProperty("--acc", st.accent);
-    document.title = `${me.name} — Fotografia`;
+    B.seo({ title: st.seo.title || `${me.name} — Fotografia`, description: st.seo.description, image: st.seo.image, jsonld: B.studioLD(s) });
     $("#pfName").textContent = me.name;
     const words = st.headline.trim().split(" "), last = words.pop();
     $("#pfHead").innerHTML = `${O.esc(words.join(" "))} <em>${O.esc(last)}</em>`;
     $("#pfAbout").textContent = st.about;
+    const posts = s.posts.filter((p) => p.published).sort((a, b) => b.date - a.date);
+    const pages = s.pages.filter((p) => p.published);
     $("#sobre").hidden = !st.sections.about; $("#depo").hidden = !st.sections.testimonials; $("#contato").hidden = !st.sections.contact;
+    $("#blog").hidden = !st.blog || !posts.length;
+    $("#pfNav").innerHTML = [["#trabalhos", "Trabalhos"], st.sections.about && ["#sobre", "Sobre"], st.blog && posts.length && ["#blog", "Diário"],
+      ...pages.map((p) => [O.pageLink(p), p.title]), st.sections.contact && ["#contato", "Contato"]].filter(Boolean).map(([h, n]) => `<a href="${O.esc(h)}">${O.esc(n)}</a>`).join("");
+    $("#pfTest").innerHTML = st.testimonials.map((t) => `<blockquote>“${O.esc(t.text)}”<cite>${O.esc(t.author)}${t.role ? " · " + O.esc(t.role) : ""}</cite></blockquote>`).join("");
+    $("#pfPosts").innerHTML = posts.slice(0, 6).map((p) => `<a class="pf-post" href="${O.esc(O.postLink(p))}"><div class="cv"><img data-bg="${O.esc(p.cover?.gid || "")}" data-bp="${O.esc(p.cover?.pid || "")}" data-bw="800" alt=""></div><span class="mono">${O.date(p.date, { day: "2-digit", month: "long", year: "numeric" })}</span><h3>${O.esc(p.title)}</h3><p>${O.esc(p.excerpt)}</p></a>`).join("");
     $("#pfWa").href = `https://wa.me/${me.whatsapp}?text=${encodeURIComponent("Oi " + me.name + "! Vi seu site e queria um orçamento.")}`;
     $("#pfContactTxt").textContent = `${me.email} · ${me.instagram}`;
     $("#pfFoot").textContent = `© ${new Date().getFullYear()} ${me.name} · ${me.brand}`;
     const sets = s.galleries.filter((g) => st.galleryIds.includes(g.id));
     $("#pfSets").innerHTML = sets.map((g) => `<article class="pf-set"><header><h3>${O.esc(g.title)}</h3><span class="mono">${O.esc(g.subtitle || "")}</span></header>
-      <div class="pf-grid">${g.photos.slice(0, 6).map((p) => `<figure data-reveal><img data-g="${g.id}" data-p="${p.id}" alt="${O.esc(g.title)}" loading="lazy"></figure>`).join("")}</div></article>`).join("") || '<p class="mono">Escolha galerias no painel para aparecerem aqui.</p>';
-    document.querySelectorAll("img[data-p]").forEach((img) => {
-      const g = s.galleries.find((x) => x.id === img.dataset.g), p = g.photos.find((x) => x.id === img.dataset.p);
-      if (p.src) img.src = p.src.replace(/\/(\d+)\/(\d+)$/, (m, W, H) => `/1000/${Math.round(1000 * H / W)}`);
-      else O.getBlob(p.id).then((b) => b && (img.src = URL.createObjectURL(b)));
-    });
+      <div class="pf-grid">${g.photos.filter((p) => !p.video).slice(0, 6).map((p) => `<figure data-reveal><img data-bg="${g.id}" data-bp="${p.id}" data-bw="1000" alt="${O.esc(g.title)}" loading="lazy"></figure>`).join("")}</div></article>`).join("") || '<p class="mono">Escolha galerias no painel para aparecerem aqui.</p>';
+    B.hydrate(document);
     Motion.reveal();
   }
   render();
   O.onChange(render);
   document.addEventListener("contextmenu", (e) => { if (e.target.tagName === "IMG") e.preventDefault(); });
-  // o formulário vira um contato no CRM do fotógrafo
-  $("#pfForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const x = Object.fromEntries(new FormData(e.target));
-    O.update((s) => {
-      s.leads.unshift({ id: O.uid("l_"), name: x.name, email: x.email, phone: x.phone, type: x.type, value: 0, eventDate: x.date ? new Date(x.date + "T12:00").getTime() : Date.now() + 60 * O.DAY, source: "Site", notes: x.notes, stage: "lead", createdAt: Date.now(), contract: null });
-      O.log(`Novo pedido de orçamento pelo site: ${x.name} (${x.type})`, "select");
-    });
-    e.target.reset();
-    O.toast("Recebido! Respondo em até 24h.", "ok");
-  });
 })();
 </script>
 </body>

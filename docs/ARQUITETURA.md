@@ -14,8 +14,24 @@ assets/js/store.js    camada de dados: estado + fotos (IndexedDB) + sincronizaç
 assets/js/pix.js      BR Code Pix (EMV + CRC16) e QR em SVG
 assets/js/protect.js  canvas protegido, marca d'água forense, bloqueios
 assets/js/motion.js   reveal sincopado, cursor-visor, magnetismo, contadores
-assets/vendor/qrcode.js  qrcode-generator (MIT, Kazuhiko Arase)
+assets/js/app-work.js     projetos e prazos, tarefas, propostas acompanhadas
+assets/js/app-finance.js  fluxo de caixa, contas a receber/pagar, vencimentos, relatórios, projeção
+assets/js/app-site.js     construtor do site: aparência, páginas/landing (blocos), blog, depoimentos, SEO
+assets/js/app-ar.js       realidade aumentada (painel)
+assets/js/blocks.js       renderização dos blocos das páginas públicas + SEO (meta, Open Graph, schema.org)
+assets/js/zip.js          ZIP no navegador (download da galeria, exportação para gráfica)
+assets/vendor/qrcode.js   qrcode-generator (MIT, Kazuhiko Arase)
+assets/vendor/mindar/     MindAR 1.2.5 (MIT) — rastreamento de imagem para a realidade aumentada
+assets/vendor/three/      three.js r160 (MIT)
 ```
+
+### Arquivos no IndexedDB
+| Chave | Conteúdo |
+|---|---|
+| `<id da foto>` | prévia otimizada (máx. 2000px) mostrada ao cliente, com proteção |
+| `orig:<id>` | arquivo original em alta, usado só na entrega e na exportação para gráfica |
+| `vid:<id>` | vídeo da galeria (a capa fica em `<id>`) |
+| `artgt:<id>` / `arvid:<id>` / `armind:<id>` | realidade aumentada: foto-alvo, vídeo e alvo já compilado (cache) |
 
 **Limitação honesta:** os dados ficam no navegador (localStorage e IndexedDB). O link da galeria funciona entre abas e janelas do **mesmo navegador**, o que basta para demonstração. Para o cliente abrir no celular dele, é preciso o back-end abaixo.
 
@@ -39,6 +55,15 @@ Toda leitura e escrita passa por `store.js` (`get`, `update`, `putBlob`, `getBlo
 
 ### Pix
 - O "copia e cola" estático já é válido. Para **confirmação automática**, use uma API Pix do banco ou PSP (cobrança dinâmica com `txid` + webhook) e marque `payments.status = 'pago'` no webhook.
+
+### Integrações que dependem de servidor ou contrato
+- **Cartão e boleto, confirmação automática do Pix**: gateway (Mercado Pago, Asaas, Pagar.me) com webhook que marca `payments.status = 'pago'` e libera a entrega.
+- **Domínio próprio**: hospedagem estática (Vercel, Netlify, Cloudflare Pages) + DNS. Com servidor, as páginas públicas devem ser pré-renderizadas para o SEO.
+- **Google Calendar**: OAuth do Google + API Calendar para sincronizar a agenda nos dois sentidos.
+- **E-mails e notificações automáticas**: serviço de e-mail transacional (Resend, Postmark) disparado pelo servidor.
+- **Equipe e permissões**: login real (Supabase Auth) com papéis (dono, assistente, editor).
+- **Textos com IA**: chamada a um modelo de linguagem pelo servidor, com a chave guardada lá.
+- **Plugin do Lightroom Classic**: plugin em Lua instalado no Lightroom, lendo a seleção pela API do servidor.
 
 ### Tempo real
 - Use Supabase Realtime nas tabelas `selections`, `payments` e `activity` no lugar do `BroadcastChannel`.

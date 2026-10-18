@@ -18,7 +18,12 @@ python3 -m http.server 8080
 | `gallery.html#g_marina` | Galeria de seleção (pacote + extras), com contrato e pagamento no portal |
 | `gallery.html#g_julia` | Galeria com senha (`1234`) |
 | `gallery.html#g_corrida` | Venda de fotos de evento: busca por nº de peito, carrinho e Pix |
-| `site.html` | Portfólio público gerado pelo construtor |
+| `site.html` | Site público: portfólio, depoimentos, blog e formulário de orçamento |
+| `page.html#casamentos-2027` | Landing pages, páginas personalizadas e posts do blog (`page.html#blog`) |
+| `proposal.html#<id>` | Proposta para o cliente: abre, aceita ou recusa online (o painel acompanha) |
+| `album.html#a_julia` | Álbum para aprovação: folhear com virada de página, ver em 3D, comentar e aprovar |
+| `ar.html#<id>` | Realidade aumentada: aponte a câmera para a foto impressa e o vídeo toca nela |
+| `pay.html#<id>` | Página de pagamento Pix |
 
 **Dica:** abra o painel e a galeria em abas lado a lado. Escolha fotos na galeria e veja o painel atualizar ao vivo.
 

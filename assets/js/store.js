@@ -143,11 +143,107 @@
     };
   }
 
+  /* ---------------- migração / novos módulos ---------------- */
+  const STAGES = [
+    ["pre", "Pré-produção", -7], ["sessao", "Sessão / evento", 0], ["backup", "Backup e triagem", 1],
+    ["selecao", "Seleção do cliente", 10], ["edicao", "Edição", 25], ["entrega", "Entrega das fotos", 30], ["album", "Álbum", 60],
+  ];
+  function projectStages(eventDate, doneUntil = -1) {
+    return STAGES.map(([key, name, off], i) => ({ key, name, due: eventDate + off * DAY, done: i <= doneUntil, doneAt: i <= doneUntil ? eventDate + off * DAY : null }));
+  }
+
+  /** Completa estados antigos com os módulos novos, sem apagar nada. */
+  function ensure(s) {
+    const t = now();
+    const lead = (id) => s.leads.find((l) => l.id === id);
+    s.galleries.forEach((g) => { g.selections ??= {}; g.clientState ??= {}; g.clients ??= []; g.videos ??= []; });
+    s.payments.forEach((p) => { p.dueDate ??= p.createdAt + 7 * DAY; p.category ??= "Serviço"; });
+    s.albums.forEach((a) => { a.comments ??= {}; a.approval ??= null; a.sentAt ??= null; });
+    s.site.testimonials ??= [
+      { id: uid("t_"), text: "Ele pegou o momento em que meu pai segurou o choro. Eu nem vi acontecer.", author: "Marina D.", role: "Casamento" },
+      { id: uid("t_"), text: "Escolher as fotos foi a parte mais gostosa — e veio com contrato e pagamento num link só.", author: "Júlia M.", role: "Ensaio gestante" },
+      { id: uid("t_"), text: "Profissional, leve e rápido. As fotos chegaram antes do prometido.", author: "Caio F.", role: "Evento corporativo" },
+    ];
+    s.site.seo ??= {
+      title: `${s.studio.name} — Fotógrafo de casamentos e ensaios em São Paulo`,
+      description: "Fotografia documental de casamentos, ensaios e eventos em São Paulo. Veja o portfólio e peça um orçamento.",
+      keywords: "fotógrafo, casamento, ensaio, são paulo, fotografia documental", image: "",
+    };
+    s.tasks ??= [
+      ["Enviar prévia do casamento para Marina", 0, "alta", "l_marina"],
+      ["Confirmar horário do pré-wedding da Ana Paula", 1, "alta", "l_ana"],
+      ["Backup do cartão do evento Fontes", 9, "media", "l_caio"],
+      ["Pedir depoimento para a Júlia", -1, "baixa", "l_julia"],
+      ["Renovar seguro do equipamento", 12, "media", null],
+      ["Responder orçamento do Rafael & Davi", -2, "alta", "l_rafa"],
+    ].map(([title, d, priority, leadId], i) => ({ id: uid("tk_"), title, due: t + d * DAY, priority, leadId, projectId: null, done: i === 3, doneAt: i === 3 ? t - DAY : null, createdAt: t - 3 * DAY }));
+    s.projects ??= [
+      ["l_marina", "Casamento Marina & Teo", "g_marina", -6, 3],
+      ["l_julia", "Ensaio gestante Júlia", "g_julia", -20, 5],
+      ["l_ana", "Casamento Ana Paula", null, 34, 0],
+      ["l_caio", "Evento corporativo Fontes", null, 9, 0],
+    ].filter(([lid]) => lead(lid)).map(([leadId, title, galleryId, off, doneUntil]) => {
+      const date = t + off * DAY;
+      return { id: uid("pj_"), title, leadId, galleryId, type: lead(leadId).type, date, stages: projectStages(date, doneUntil), notes: "", createdAt: date - 40 * DAY };
+    });
+    if (!s.expenses) {
+      const ex = [];
+      for (let m = 5; m >= 0; m--) {
+        const base = t - m * 30 * DAY;
+        ex.push({ desc: "Aluguel do estúdio", category: "Estúdio", amount: 1800, due: base - 5 * DAY, recurring: true, paid: m > 0 });
+        ex.push({ desc: "Adobe Creative Cloud", category: "Software", amount: 124, due: base - 2 * DAY, recurring: true, paid: m > 0 });
+        ex.push({ desc: "DAS — Simples Nacional", category: "Impostos", amount: 76, due: base + 3 * DAY, recurring: true, paid: m > 0 });
+      }
+      ex.push({ desc: "Assistente — casamento Marina", category: "Equipe", amount: 450, due: t - 6 * DAY, paid: true });
+      ex.push({ desc: "Combustível e pedágio", category: "Transporte", amount: 280, due: t - 4 * DAY, paid: true });
+      ex.push({ desc: "Impulsionamento Instagram", category: "Marketing", amount: 300, due: t - 12 * DAY, paid: true });
+      ex.push({ desc: "Laboratório — álbum Júlia", category: "Laboratório", amount: 890, due: t + 6 * DAY, paid: false });
+      ex.push({ desc: "Lente 85mm (parcela 3/10)", category: "Equipamento", amount: 420, due: t - 1 * DAY, paid: false });
+      s.expenses = ex.map((e) => ({ id: uid("ex_"), desc: e.desc, category: e.category, amount: e.amount, dueDate: e.due, status: e.paid ? "pago" : "pendente", paidAt: e.paid ? e.due : null, recurring: !!e.recurring, createdAt: e.due - 10 * DAY }));
+    }
+    s.proposals ??= [
+      ["l_bia", "Festa de 15 anos — cobertura completa", [["Cobertura de 6 horas", 1, 4200], ["Ensaio pré-festa", 1, 900], ["Álbum 30×30 com 40 lâminas", 1, 1100]], 600, "vista", 3],
+      ["l_rafa", "Casamento Rafael & Davi", [["Cobertura completa (cerimônia e festa)", 1, 8200], ["Segundo fotógrafo", 1, 1600]], 0, "enviada", 2],
+      ["l_ana", "Casamento Ana Paula", [["Cobertura completa", 1, 9800], ["Pré-wedding", 1, 1400]], 0, "aceita", 9],
+    ].filter(([lid]) => lead(lid)).map(([leadId, title, items, discount, status, ago]) => ({
+      id: uid("pr_"), leadId, title, items: items.map(([desc, qty, price]) => ({ desc, qty, price })), discount,
+      message: "Foi muito bom conversar com você. Preparei esta proposta pensando no seu dia.", validUntil: t + (10 - ago) * DAY,
+      status, createdAt: t - ago * DAY, sentAt: t - ago * DAY, viewedAt: status !== "enviada" ? t - (ago - 1) * DAY : null,
+      respondedAt: status === "aceita" ? t - (ago - 2) * DAY : null, views: status === "enviada" ? 0 : 2,
+    }));
+    s.pages ??= [{
+      id: uid("pg_"), slug: "casamentos-2027", title: "Casamentos 2027", kind: "landing", published: true, createdAt: t - 5 * DAY,
+      seo: { title: "Fotografia de casamento 2027 — agenda aberta", description: "Datas abertas para 2027. Fotografia documental de casamento em São Paulo e destino." },
+      blocks: [
+        { type: "hero", title: "Agenda 2027 aberta.", subtitle: "Poucas datas por mês, para cada casamento ter o tempo que merece.", gid: "g_marina", pid: null, button: "form" },
+        { type: "text", title: "Como eu fotografo", body: "Sem poses forçadas. Eu acompanho o dia de perto e registro o que acontece entre os momentos combinados.\n\nVocê recebe uma galeria protegida para escolher as fotos, com contrato e pagamento no mesmo link." },
+        { type: "gallery", gid: "g_marina", count: 6 },
+        { type: "quote", text: "Ele pegou o momento em que meu pai segurou o choro.", author: "Marina D." },
+        { type: "faq", items: [{ q: "Vocês viajam para casamentos fora de SP?", a: "Sim. Para outras cidades, os custos de deslocamento entram na proposta." }, { q: "Em quanto tempo recebo as fotos?", a: "A galeria de seleção chega em até 10 dias; as fotos editadas, até 30 dias depois da seleção." }] },
+        { type: "form", title: "Conte sobre o seu casamento" },
+      ],
+    }];
+    s.posts ??= [
+      { id: uid("po_"), slug: "como-escolher-as-fotos-do-album", title: "Como escolher as fotos do seu álbum", cover: { gid: "g_julia", pid: null }, date: t - 8 * DAY, published: true,
+        excerpt: "Um roteiro simples para escolher sem sofrimento: comece pelo que te faz sentir alguma coisa.",
+        body: "Escolher 40 fotos entre 600 parece impossível. Não é.\n\n## Comece pelas que te fazem sentir\nAbra a galeria e marque, sem pensar muito, as fotos que te fazem sorrir ou lembrar de alguém.\n\n## Depois, conte a história\nOlhe o que marcou e veja se o dia está contado do começo ao fim: preparação, cerimônia, abraços, festa.\n\n## Por último, corte repetidas\nSe tiver três fotos parecidas, fique com a que tem o olhar mais vivo.",
+        seo: { title: "", description: "" } },
+      { id: uid("po_"), slug: "bastidores-corrida-noturna", title: "Bastidores: fotografando a Corrida Noturna", cover: { gid: "g_corrida", pid: null }, date: t - 3 * DAY, published: true,
+        excerpt: "Duas câmeras, 4 mil fotos e um sistema que deixa cada corredor achar a sua pelo número de peito.",
+        body: "Fotografar corrida à noite é um exercício de luz e paciência.\n\n## O equipamento\nDuas câmeras, uma lente clara e flash rebatido para não ofuscar ninguém.\n\n## A entrega\nCada foto é marcada com os números de peito visíveis. O corredor busca o número e compra direto na galeria, com Pix.",
+        seo: { title: "", description: "" } },
+    ];
+    s.ar ??= [];
+    s.site.blog ??= true;
+    return s;
+  }
+
   /* ---------------- estado ---------------- */
   let state;
   function load() {
     try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) { state = null; }
-    if (!state || state.v !== 1) { state = seed(); persist(false); }
+    if (!state || state.v !== 1) { state = seed(); ensure(state); persist(false); }
+    else ensure(state);
     return state;
   }
   function persist(broadcast = true) {
@@ -242,6 +338,11 @@
   const base = () => location.href.replace(/[^/]*([?#].*)?$/, "");
   const galleryLink = (g) => `${base()}gallery.html#${g.id}`;
   const payLink = (p) => `${base()}pay.html#${p.id}`;
+  const proposalLink = (p) => `${base()}proposal.html#${p.id}`;
+  const albumLink = (a) => `${base()}album.html#${a.id}`;
+  const arLink = (x) => `${base()}ar.html#${x.id}`;
+  const pageLink = (pg) => `${base()}page.html#${pg.slug}`;
+  const postLink = (po) => `${base()}page.html#blog/${po.slug}`;
 
   function toast(msg, kind = "") {
     let box = document.querySelector(".toasts");
@@ -258,6 +359,6 @@
   window.Offbeat = {
     uid, now, DAY, contractTemplate, get, update, reset, onChange, log, persist,
     putBlob, getBlob, delBlob, downscale, loadImage,
-    money, date, ago, esc, galleryLink, payLink, toast, copy,
+    money, date, ago, esc, galleryLink, payLink, proposalLink, albumLink, arLink, pageLink, postLink, toast, copy, projectStages, STAGES,
   };
 })();
