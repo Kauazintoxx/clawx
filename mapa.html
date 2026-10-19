@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="claude:viewport-fit-sides" content="cover" />
+<title>Mapa do Estúdio Offbeat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Layout: índice de produto em coluna única — grupos por etapa do trabalho, cada função com link direto */
+  :root {
+    --bg: #efeae0; --surface: #f8f5ef; --fg: #0f0e0c; --sub: #5e5850; --line: rgba(15,14,12,.13); --accent: #d23a25; --chip: #e4ddd0;
+    --f-display: "Instrument Serif", "Times New Roman", serif;
+    --f-body: "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12110f; --surface: #1b1a17; --fg: #efeae0; --sub: #a59e93; --line: rgba(239,234,224,.13); --accent: #ff6a4d; --chip: #2a2723; color-scheme: dark; } }
+  :root[data-theme="dark"] { --bg: #12110f; --surface: #1b1a17; --fg: #efeae0; --sub: #a59e93; --line: rgba(239,234,224,.13); --accent: #ff6a4d; --chip: #2a2723; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--f-body); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 980px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 48px 96px; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 36px; }
+  .brand { font: 400 1.7rem/1 var(--f-display); text-decoration: none; }
+  .brand i { color: var(--accent); font-style: normal; }
+  .mono { font: 500 .72rem/1.4 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--sub); }
+  h1 { font: 400 clamp(2.6rem, 7vw, 4.6rem)/.95 var(--f-display); letter-spacing: -.02em; margin: 8px 0 16px; text-wrap: balance; }
+  h1 em { color: var(--accent); }
+  .lede { max-width: 62ch; color: var(--sub); margin: 0 0 20px; }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 36px; padding: 0; list-style: none; }
+  .flow li { padding: 6px 12px; border-radius: 99px; background: var(--chip); font-size: .82rem; }
+  .flow li:not(:last-child)::after { content: " →"; color: var(--accent); }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 44px; }
+  .toc a { padding: 8px 14px; border-radius: 99px; border: 1px solid var(--line); text-decoration: none; font-size: .9rem; }
+  .toc a:hover { border-color: var(--accent); color: var(--accent); }
+  section { margin-bottom: 48px; scroll-margin-top: 20px; }
+  section > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--fg); margin-bottom: 4px; }
+  h2 { font: 400 2.2rem/1 var(--f-display); margin: 0; }
+  .items { list-style: none; margin: 0; padding: 0; }
+  .it { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 20px; align-items: start; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .it > div { min-width: 0; }
+  .it h3 { font-size: 1.05rem; font-weight: 600; margin: 0 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .it p { margin: 0; color: var(--sub); max-width: 64ch; }
+  .tag { font: 500 .62rem var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--sub); }
+  .tag.cli { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+  .links a { white-space: nowrap; padding: 7px 14px; border-radius: 99px; background: var(--fg); color: var(--bg); text-decoration: none; font-size: .84rem; font-weight: 500; transition: background .2s; }
+  .links a.alt { background: transparent; color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); }
+  .links a:hover { background: var(--accent); color: #fff; box-shadow: none; }
+  .hint { font-size: .82rem; color: var(--sub); margin-top: 6px; }
+  .hint code { font-family: var(--f-mono); font-size: .8rem; background: var(--chip); padding: 1px 6px; border-radius: 4px; }
+  .note { padding: 16px 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--sub); font-size: .9rem; max-width: 72ch; }
+  @media (max-width: 640px) { .it { grid-template-columns: minmax(0, 1fr); } .links { justify-content: flex-start; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><a class="brand" href="index.html">Offbeat<i>.</i></a><span class="mono">Mapa do sistema</span></header>
+  <p class="mono">Estúdio do Lázaro · todas as funções</p>
+  <h1>Tudo o que o estúdio <em>faz.</em></h1>
+  <p class="lede">Cada função do sistema em uma linha, na ordem do trabalho do fotógrafo. O botão abre a função direto. As marcadas como <span class="tag cli">cliente vê</span> são as páginas que o cliente recebe por link.</p>
+  <ul class="flow" aria-label="Caminho de um trabalho"><li>Contato</li><li>Proposta</li><li>Contrato e sinal</li><li>Preparação</li><li>Sessão</li><li>Seleção</li><li>Edição</li><li>Entrega</li><li>Álbum</li><li>Recompra</li></ul>
+  <nav class="toc" id="toc" aria-label="Seções"></nav>
+  <div id="map"></div>
+  <p class="note">Os dados são de demonstração e ficam salvos no navegador de quem abre. Para voltar ao início, use Ajustes → Restaurar demonstração.</p>
+</div>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/insights.js"></script>
+<script>
+(function () {
+  let s = null;
+  try { s = window.Offbeat && Offbeat.get(); } catch (e) {}
+  const first = (arr, f) => (arr || []).find(f || (() => true));
+  const ids = {
+    proposal: first(s?.proposals, (p) => p.status !== "aceita")?.id || first(s?.proposals)?.id,
+    project: first(s?.projects, (p) => p.date > Date.now())?.id || first(s?.projects)?.id,
+    page: first(s?.pages)?.slug || "casamentos-2027",
+    post: first(s?.posts)?.slug,
+    ar: first(s?.ar)?.id,
+  };
+  const A = (h) => "app.html#/" + h;
+  const MAP = [
+    ["inicio", "Início", "Por onde entrar", [
+      ["Apresentação do estúdio", "A página de entrada: abertura com o diafragma da lente, os módulos e o caminho de um trabalho.", [["Abrir", "index.html"]]],
+      ["Página inicial do painel", "“Bom dia, Lázaro. O que fazemos hoje?” Cards de todas as funções, oportunidades, dinheiro do mês e a jornada dos clientes.", [["Abrir", A("")]]],
+      ["Painel do dia", "Recebido no mês, gráfico de receita, atividade ao vivo, o que pede atenção, compromissos, tarefas, prazos e contas a vencer.", [["Abrir", A("hoje")]]],
+      ["Busca e atalhos (Ctrl K)", "Uma caixa de busca que vai para qualquer tela, cliente ou galeria, ou cria algo novo: galeria, cliente, cobrança, tarefa.", [["Abrir o painel", A("")]], "Dentro do painel, aperte Ctrl K ou clique em “Buscar ou criar…”."],
+      ["Tema claro e escuro", "O painel inteiro troca de tema pelo botão ◐ no topo.", [["Abrir o painel", A("")]]],
+    ]],
+    ["vender", "Vender", "Atrair, responder e fechar", [
+      ["Oportunidades de receita", "Dinheiro parado que dá para recuperar: propostas sem resposta, contatos esquecidos, fins de semana livres, carrinhos abandonados, extras não pagos, clientes que não voltam e serviços que rendem pouco. Cada item tem prioridade, motivo, valor e mensagem pronta.", [["Abrir", A("oportunidades")]]],
+      ["Jornada dos clientes", "Os clientes nas 7 etapas: interessado, reserva, ensaio, edição, entrega, pagamento e recompra. Tocando numa etapa, aparece quem está lá e o próximo passo.", [["Abrir", A("")]], "Fica na página inicial do painel, abaixo das oportunidades."],
+      ["Clientes (CRM)", "Funil em colunas, arrastando o card entre etapas. Cada card mostra a prioridade e o próximo passo. Também mostra a receita por tipo de trabalho e a origem dos contatos.", [["Abrir", A("crm")]]],
+      ["Ficha do cliente", "Dados, histórico completo e atalhos para WhatsApp, proposta, contrato, cobrança Pix, galeria, agenda, projeto e tarefa.", [["Abrir clientes", A("crm")]], "Clique em qualquer card do funil."],
+      ["Contratos", "Contrato gerado a partir do cliente, editável e com versão para imprimir. O cliente assina na tela, pelo próprio link.", [["Abrir clientes", A("crm")], ["Contrato como o cliente vê", "gallery.html#g_marina", "alt"]], "No painel: ficha do cliente → Contrato. No link do cliente: aba Contrato."],
+      ["Propostas", "Proposta com itens, desconto e validade. Mostra se foi enviada, vista, aceita ou recusada, e quantas vezes o cliente abriu. Tem mensagem pronta para cobrar resposta.", [["Abrir", A("propostas")], ...(ids.proposal ? [["Proposta como o cliente vê", "proposal.html#" + ids.proposal, "alt"]] : [])], null, true],
+      ["Agenda", "Calendário do mês com sessões, reuniões, eventos e entregas. Cada compromisso pode ir para o Google Agenda ou ser confirmado por WhatsApp.", [["Abrir", A("agenda")]]],
+      ["Meu site: aparência", "Tema, frase principal, texto “sobre”, cor, galerias do portfólio e seções, com prévia ao vivo no computador e no celular.", [["Abrir", A("site/aparencia")], ["Site público", "site.html", "alt"]]],
+      ["Landing pages e páginas", "Páginas montadas em blocos: capa, texto, fotos, depoimento, perguntas, chamada e formulário. Todo formulário vira cliente no CRM.", [["Editar", A("site/paginas")], ["Ver landing", "page.html#" + ids.page, "alt"]]],
+      ["Blog", "Posts com capa, data e texto formatado. Aparecem no site em “Diário”.", [["Editar", A("site/blog")], ["Ver blog", "page.html#blog", "alt"]]],
+      ["Depoimentos", "Depoimentos de clientes, editáveis, que aparecem no site.", [["Abrir", A("site/depoimentos")]]],
+      ["SEO", "Título e descrição para o Google, prévia do resultado de busca e lista de checagem. Cada página e post tem o seu próprio SEO.", [["Abrir", A("site/seo")]]],
+    ]],
+    ["produzir", "Produzir", "Preparar, fotografar e editar", [
+      ["Projetos e prazos", "Cada trabalho tem 7 etapas com prazos: pré-produção, sessão, backup, seleção, edição, entrega e álbum. Avisa quando algo vai atrasar.", [["Abrir", A("projetos")], ...(ids.project ? [["Ver um projeto", A("projeto/" + ids.project), "alt"]] : [])]],
+      ["Preparação do cliente", "Link para o cliente com contagem regressiva, dicas para o tipo de trabalho, checklist e perguntas (local, horários, pessoas importantes). As respostas voltam para o painel.", [["Abrir", A("preparo")], ...(ids.project ? [["Como o cliente vê", "prep.html#" + ids.project, "alt"]] : [])], null, true],
+      ["Fila de edição", "Ordena o que editar primeiro e prevê a data de cada entrega pelas suas horas de trabalho por dia. Ao concluir uma edição, libera as fotos e avisa o cliente.", [["Abrir", A("fila")]]],
+      ["Tarefas", "Lista com prazo e prioridade, ligada a clientes e projetos. Filtros: hoje, atrasadas, próximas e concluídas.", [["Abrir", A("tarefas")]]],
+    ]],
+    ["entregar", "Entregar", "Seleção, venda e experiência", [
+      ["Galerias", "Todas as galerias, com busca e filtros (seleção, venda, finalizadas, expirando). Dá para criar galeria por pacote, seleção livre ou compartilhada entre vários clientes.", [["Abrir", A("galerias")]]],
+      ["Envio de fotos e vídeos", "Arrastar fotos e vídeos para a galeria. O original em alta fica guardado para a entrega, e o cliente vê só uma prévia protegida.", [["Abrir uma galeria", A("g/g_marina")]]],
+      ["Seleção do cliente", "O cliente escolhe pelo ♥, comenta, compara duas fotos, vê em slideshow e finaliza numa barra fixa. Fotos além do pacote viram cobrança Pix.", [["Galeria da Marina", "gallery.html#g_marina"], ["Galeria com senha (1234)", "gallery.html#g_julia", "alt"]], null, true],
+      ["Proteção das fotos", "As fotos aparecem com marca d'água que leva o e-mail do cliente. O botão direito, o arrastar, o Ctrl+S e o print são bloqueados.", [["Testar", "gallery.html#g_marina"]], "Tente clicar com o botão direito numa foto.", true],
+      ["Portal do cliente", "No mesmo link: fotos, contrato com assinatura na tela e pagamentos Pix.", [["Abrir", "gallery.html#g_marina"]], "Use as abas Fotos, Contrato e Pagamento no topo.", true],
+      ["Resultado da seleção e Lightroom", "Fotos escolhidas, extras e comentários. Copia o filtro pronto para o Lightroom, baixa a lista em planilha (CSV) e libera o download.", [["Abrir", A("g/g_julia/selecao")]]],
+      ["Download em ZIP", "Depois de liberado, o cliente baixa todos os originais num arquivo só.", [["Galeria liberada", "gallery.html#g_julia", "alt"]], "Galeria da Júlia, senha 1234. Libere o download na seleção do painel.", true],
+      ["Venda de fotos de evento", "O público busca pelo número de peito, monta o carrinho com o preço de pacote calculado sozinho e paga por Pix.", [["Corrida Noturna", "gallery.html#g_corrida"], ["Pedidos no painel", A("g/g_corrida/pedidos"), "alt"]], "Busque o número 12.", true],
+      ["Desempenho da galeria", "Visitas, quem começou e quem finalizou, abandono de carrinho, ticket médio e os pacotes que mais vendem.", [["Evento", A("g/g_corrida/desempenho")], ["Seleção", A("g/g_marina/desempenho"), "alt"]]],
+      ["Álbuns: diagramação", "O álbum nasce montado com a seleção. Dá para arrastar fotos para as lâminas, trocar o layout e folhear a prévia.", [["Abrir", A("album/a_julia")], ["Todos os álbuns", A("albuns"), "alt"]]],
+      ["Álbuns: aprovação e 3D", "O cliente folheia com virada de página, vê o livro em 3D, comenta cada lâmina e aprova ou pede ajustes.", [["Folhear", "album.html#a_julia"], ["Ver em 3D", "album.html?modo=3d#a_julia", "alt"]], null, true],
+      ["Exportação para a gráfica", "Gera um ZIP com as lâminas em 300 dpi e 3 mm de sangria, pronto para a encadernadora.", [["Abrir o álbum", A("album/a_julia")]], "Botão “Exportar p/ gráfica” no editor do álbum."],
+      ["Realidade aumentada", "Liga uma foto impressa a um vídeo. O cliente aponta o celular para a foto e o vídeo toca em cima dela. Tem link, WhatsApp e cartão com QR Code.", [["Abrir", A("ar")], ...(ids.ar ? [["Como o cliente vê", "ar.html#" + ids.ar, "alt"]] : [])], ids.ar ? null : "Crie a primeira experiência no painel enviando uma foto e um vídeo.", true],
+      ["Arquivo de fotos", "Busca em todas as fotos escrevendo normalmente, como “casamento azul escolhidas”: filtra por tipo, ano, cor, orientação, escolhidas e comentadas.", [["Abrir", A("arquivo")]]],
+    ]],
+    ["crescer", "Crescer", "Dinheiro, lucro e recompra", [
+      ["Fluxo de caixa", "Entradas e saídas por mês, o que já aconteceu e o que está previsto, projeção de 3 meses e vencimentos dos próximos 14 dias.", [["Abrir", A("financeiro/visao")]]],
+      ["Contas a receber", "Cobranças com vencimento, avisos de atraso, botão de cobrar pelo WhatsApp e confirmação de recebimento.", [["Abrir", A("financeiro/receber")]]],
+      ["Contas a pagar", "Despesas por categoria, vencimento e contas que se repetem todo mês: ao pagar, a do mês seguinte já é lançada.", [["Abrir", A("financeiro/pagar")]]],
+      ["Relatórios financeiros", "Receitas, despesas, lucro e margem por período, despesas por categoria e mês a mês. Exporta em planilha (CSV).", [["Abrir", A("financeiro/relatorios")]]],
+      ["Cobrança Pix", "Gera o Pix copia e cola e o QR Code, válidos em qualquer banco, com uma página de pagamento para mandar ao cliente.", [["Página de pagamento", "pay.html#pay_ana"]], "No painel: Financeiro → + Cobrança.", true],
+      ["Lucro por serviço", "Quanto cada tipo de trabalho rende por hora, depois de custos e impostos, e quanto cobrar para chegar na sua meta.", [["Abrir", A("lucro")]]],
+      ["Pós-venda", "Lembra o momento certo de pedir depoimento, oferecer álbum, pedir indicação e propor a próxima sessão, com mensagem pronta.", [["Abrir", A("posvenda")]]],
+      ["Ajustes", "Nome, marca, WhatsApp, chave Pix, backup dos dados e restauração da demonstração.", [["Abrir", A("ajustes")]]],
+    ]],
+  ];
+  const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const total = MAP.reduce((a, g) => a + g[3].length, 0);
+  document.getElementById("toc").innerHTML = MAP.map(([id, n, , items]) => `<a href="#${id}">${n} · ${items.length}</a>`).join("") + `<a href="#inicio" aria-hidden="true" tabindex="-1" style="pointer-events:none;opacity:.6">${total} funções</a>`;
+  document.getElementById("map").innerHTML = MAP.map(([id, name, sub, items]) => `<section id="${id}"><header><h2>${name}</h2><span class="mono">${sub}</span></header><ul class="items">
+    ${items.map(([t, d, links, hint, cli]) => `<li class="it"><div><h3>${esc(t)}${cli ? ' <span class="tag cli">cliente vê</span>' : ""}</h3><p>${esc(d)}</p>${hint ? `<p class="hint">${esc(hint)}</p>` : ""}</div>
+      <div class="links">${links.map(([l, h, k]) => `<a class="${k || ""}" href="${esc(h)}">${esc(l)}</a>`).join("")}</div></li>`).join("")}</ul></section>`).join("");
+  try { const h = location.hash.slice(1); if (h) document.getElementById(h)?.scrollIntoView(); } catch (e) {}
+})();
+</script>
+</body>
+</html>

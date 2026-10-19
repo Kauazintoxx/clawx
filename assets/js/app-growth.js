@@ -46,7 +46,7 @@
     v.innerHTML = `
       <header class="home-h"><div><p class="mono">${new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
         <h1>${hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite"}, ${esc(s.studio.name)}. <em>O que fazemos hoje?</em></h1></div>
-        <div class="acts"><button class="btn btn--ghost" data-q="lead">+ Cliente</button><button class="btn btn--ghost" data-q="task">+ Tarefa</button><button class="btn btn--red" data-q="gallery">+ Galeria</button></div></header>
+        <div class="acts"><a class="btn btn--ghost" href="mapa.html">Mapa do sistema</a><button class="btn btn--ghost" data-q="lead">+ Cliente</button><button class="btn btn--ghost" data-q="task">+ Tarefa</button><button class="btn btn--red" data-q="gallery">+ Galeria</button></div></header>
 
       <section class="home-top">
         <a class="opbox" href="#/oportunidades">
