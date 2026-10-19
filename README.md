@@ -14,7 +14,7 @@ python3 -m http.server 8080
 | Página | O que é |
 |---|---|
 | `index.html` | Início: apresenta o sistema, os módulos e o caminho de um trabalho. Daqui se entra no estúdio |
-| `app.html` | Painel do fotógrafo, protegido por senha (no primeiro acesso você cria a sua): visão geral, galerias, clientes, agenda, financeiro, álbuns, site, ajustes |
+| `app.html` | Painel do fotógrafo (abre direto, sem senha): visão geral, galerias, clientes, agenda, financeiro, álbuns, site, ajustes |
 | `gallery.html#g_marina` | Galeria de seleção (pacote + extras), com contrato e pagamento no portal |
 | `gallery.html#g_julia` | Galeria com senha (`1234`) |
 | `gallery.html#g_corrida` | Venda de fotos de evento: busca por nº de peito, carrinho e Pix |

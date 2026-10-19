@@ -13,21 +13,6 @@
 <link rel="stylesheet" href="assets/css/app.css" />
 </head>
 <body>
-<!-- Entrada do estúdio (senha do dono) -->
-<section class="lock" id="lock" hidden>
-  <svg class="lock__iris" viewBox="-100 -100 200 200" aria-hidden="true"><g id="lockBlades"></g><circle r="98" fill="none" stroke="currentColor" stroke-opacity=".25" /></svg>
-  <form class="lock__box" id="lockForm" autocomplete="off">
-    <p class="mono">Estúdio Offbeat</p>
-    <h1 class="serif" id="lockTitle">Olá, Lázaro.</h1>
-    <p class="lock__sub" id="lockSub">Digite sua senha para entrar no estúdio.</p>
-    <label class="lock__field"><span class="mono">Senha</span><input type="password" id="lockPw" required minlength="4" autocomplete="current-password" /></label>
-    <label class="lock__field" id="lockConfirmWrap" hidden><span class="mono">Repita a senha</span><input type="password" id="lockPw2" minlength="4" autocomplete="new-password" /></label>
-    <p class="lock__err mono" id="lockErr" role="alert"></p>
-    <button class="btn btn--red" type="submit" id="lockBtn">Entrar <span class="arr">→</span></button>
-    <a class="lock__back mono" href="index.html">← Voltar ao início</a>
-  </form>
-</section>
-
 <div class="app" id="app">
   <header class="topbar" id="topbar">
     <a class="logo" href="#/" aria-label="Início">Offbeat<i></i></a>
@@ -38,7 +23,6 @@
       <a class="tb-alert" id="alertBtn" href="#/oportunidades" title="Oportunidades com prioridade alta" hidden><span>●</span><b id="alertN">0</b></a>
       <button class="tb-ic" id="themeBtn" aria-label="Alternar tema" title="Tema claro/escuro">◐</button>
       <span class="av" title="Lázaro"><span id="meName" hidden>Lázaro</span>L</span>
-      <button class="tb-ic" id="logoutBtn" aria-label="Sair" title="Sair do estúdio">⏻</button>
     </div>
   </header>
 
